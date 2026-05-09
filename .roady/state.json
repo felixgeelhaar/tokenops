@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 6,
+  "version": 8,
   "task_states": {
     "analytics-aggregator": {
       "status": "pending",
@@ -204,9 +204,15 @@
       "elapsed_minutes": 0
     },
     "proxy-skeleton": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/proxy.Server: net.Listen + http.Server, ReadHeaderTimeout, /healthz /readyz /version handlers, MarkReady toggle, graceful Shutdown wired to context cancel + configurable timeout. internal/config: YAML+env loader (TOKENOPS_LISTEN, TOKENOPS_LOG_*, TOKENOPS_SHUTDOWN_TIMEOUT) with validation. internal/observ: slog logger (json/text). cmd/tokenopsd: start/version/help subcommands, SIGINT+SIGTERM handler, structured startup logs. End-to-end smoke confirmed: daemon binds 127.0.0.1:7878, all endpoints return JSON, SIGTERM triggers clean shutdown. go test -race, golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T08:49:48.908405+02:00",
+      "completed_at": "2026-05-09T08:54:02.966957+02:00",
+      "elapsed_minutes": 4
     },
     "proxy-streaming": {
       "status": "pending",
@@ -295,5 +301,5 @@
       "elapsed_minutes": 0
     }
   },
-  "updated_at": "2026-05-09T08:38:55.119707+02:00"
+  "updated_at": "2026-05-09T08:54:02.966958+02:00"
 }
