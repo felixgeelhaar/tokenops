@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 8,
+  "version": 10,
   "task_states": {
     "analytics-aggregator": {
       "status": "pending",
@@ -199,9 +199,15 @@
       "elapsed_minutes": 0
     },
     "proxy-providers": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/providers: Provider registry (OpenAI/Anthropic/Gemini) with prefix routing, default upstream URLs, ParseUpstream validation, ResolveByPath, and per-provider Normalize functions producing CanonicalRequest (Model, Stream, MaxOutputTokens, MessageCount, SystemPresent, Operation). internal/proxy/router.go: BuildProviderRoutes with map[id]url overrides, httputil.ReverseProxy with Rewrite preserving upstream root path, hop-by-hop headers stripped automatically, ErrorHandler returns 502. config.Providers map plus TOKENOPS_PROVIDER_{OPENAI,ANTHROPIC,GEMINI}_URL env overrides. End-to-end smoke confirmed: POST /openai/v1/chat/completions forwarded to /v1/chat/completions on local upstream with Authorization header and JSON body intact. go test -race + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T09:07:19.357344+02:00",
+      "completed_at": "2026-05-09T09:12:06.649783+02:00",
+      "elapsed_minutes": 4
     },
     "proxy-skeleton": {
       "status": "done",
@@ -301,5 +307,5 @@
       "elapsed_minutes": 0
     }
   },
-  "updated_at": "2026-05-09T08:54:02.966958+02:00"
+  "updated_at": "2026-05-09T09:12:06.649783+02:00"
 }
