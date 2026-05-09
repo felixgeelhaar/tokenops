@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 4,
+  "version": 6,
   "task_states": {
     "analytics-aggregator": {
       "status": "pending",
@@ -93,9 +93,15 @@
       "elapsed_minutes": 0
     },
     "event-schema": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "pkg/eventschema package: Envelope + PromptEvent + WorkflowEvent + OptimizationEvent + CoachingEvent Go types, Protobuf source-of-truth at proto/v1/events.proto, OpenTelemetry GenAI semconv keys (gen_ai.*) plus tokenops.* attributes in otel.go, SchemaVersion 1.0.0 with semver versioning policy, README documenting taxonomy + versioning + change procedure, round-trip JSON test + provider-mapping test. go test, go vet, golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T08:35:15.965844+02:00",
+      "completed_at": "2026-05-09T08:38:55.119706+02:00",
+      "elapsed_minutes": 3
     },
     "forecasting-core": {
       "status": "pending",
@@ -289,5 +295,5 @@
       "elapsed_minutes": 0
     }
   },
-  "updated_at": "2026-05-09T08:22:58.578807+02:00"
+  "updated_at": "2026-05-09T08:38:55.119707+02:00"
 }
