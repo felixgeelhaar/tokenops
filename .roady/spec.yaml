@@ -1,0 +1,46 @@
+id: tokenops
+title: TokenOps
+description: Open-source operational intelligence layer for AI systems. Real-time token optimization, inference observability, agent usage analytics, prompt intelligence, forecasting, governance, AI efficiency coaching across OpenAI Anthropic Gemini. Sits between clients/agents/workflows and frontier LLM providers.
+features:
+    - id: tokenops-proxy
+      title: TokenOps Proxy
+      description: Local proxy intercepting requests between clients and LLM providers. Foundation for all other components.
+      requirements: []
+    - id: optimization-engine
+      title: Optimization Engine
+      description: Reduces token waste in real time via compression deduplication retrieval pruning context trimming adaptive routing.
+      requirements: []
+    - id: observability-platform
+      title: Observability Platform
+      description: Token analytics spend tracking workflow attribution latency tracking efficiency scoring.
+      requirements: []
+    - id: coaching-engine
+      title: Coaching Engine
+      description: Replays expensive sessions generates optimized alternatives teaches prompt efficiency. Local models async batch analysis.
+      requirements: []
+    - id: forecasting-governance
+      title: Forecasting and Governance
+      description: Weekly limit tracking budget alerts usage forecasting anomaly detection.
+      requirements: []
+    - id: integrations
+      title: Client Integrations
+      description: First-party integrations across CLI ecosystem IDEs SDK ecosystem.
+      requirements: []
+    - id: cli
+      title: TokenOps CLI
+      description: Command-line interface for daemon management replay optimization analysis status coaching.
+      requirements: []
+    - id: dashboard
+      title: Dashboard
+      description: Vue web dashboard for live token usage spend attribution forecasts agent analytics optimization opportunities.
+      requirements: []
+    - id: data-telemetry
+      title: Data Model and Telemetry
+      description: Event schema for prompts workflows optimizations coaching. Local-first with optional cloud emission. OpenTelemetry compatible.
+      requirements: []
+    - id: security-privacy
+      title: Security and Privacy
+      description: Local-first self-hostable privacy-preserving. Opt-in cloud telemetry. Air-gapped deployment supported.
+      requirements: []
+constraints: []
+version: 0.1.0

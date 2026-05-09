@@ -1,0 +1,293 @@
+{
+  "project_id": "tokenops",
+  "version": 4,
+  "task_states": {
+    "analytics-aggregator": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "anomaly-detector": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "async-pipeline": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "audit-log": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "budget-alerts": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "cli-replay": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "cli-skeleton": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "cli-spend": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "clickhouse-schema": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "dashboard-auth": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "dashboard-burn-graph": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "dashboard-forecast": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "dashboard-heatmap": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "dashboard-opt-list": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "dashboard-skeleton": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "dashboard-timeline": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "docs-site": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "efficiency-score": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "event-schema": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "forecasting-core": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "integ-claude-code": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "integ-codex-cli": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "integ-gemini-cli": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "langchain-callback": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "local-model-integ": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "mcp-server": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "openai-agents-mw": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "opt-context-trim": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "opt-dedupe": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "opt-engine-core": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "opt-prompt-compress": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "opt-quality-gate": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "opt-retrieval-prune": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "opt-router": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "otel-exporter": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "proxy-bench": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "proxy-cache": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "proxy-events": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "proxy-providers": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "proxy-skeleton": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "proxy-streaming": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "proxy-tls": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "proxy-tokenizer": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "rbac-scaffold": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "redaction": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "replay-engine": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "repo-bootstrap": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Bootstrap complete: Go monorepo (go.mod, cmd/tokenops + cmd/tokenopsd, internal/version with test), Makefile, golangci-lint v2 config, GitHub Actions CI (lint/test matrix/build matrix), pre-commit config, LICENSE Apache 2.0, README, CONTRIBUTING, CODE_OF_CONDUCT, PR template, .gitignore, .editorconfig. make build OK, go test OK, golangci-lint clean."
+      ],
+      "started_at": "2026-05-09T08:18:14.961917+02:00",
+      "completed_at": "2026-05-09T08:22:58.578805+02:00",
+      "elapsed_minutes": 4
+    },
+    "retention-config": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "sdk-shim-anthropic": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "sdk-shim-gemini": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "sdk-shim-openai": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "spend-engine": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "sqlite-store": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "vscode-ext-mvp": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "waste-detector": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "workflow-trace": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    }
+  },
+  "updated_at": "2026-05-09T08:22:58.578807+02:00"
+}
