@@ -62,6 +62,12 @@
       "title": "Security and Privacy",
       "description": "Local-first self-hostable privacy-preserving. Opt-in cloud telemetry. Air-gapped deployment supported.",
       "requirements": []
+    },
+    {
+      "id": "operator-golden-path-+-wedge-kpi",
+      "title": "Operator Golden Path + Wedge KPI",
+      "description": "Add a clear operator-first onboarding path that proves value quickly: a 5-minute golden path from install to first measurable token insight, with explicit expected output and a wedge KPI definition in docs.",
+      "requirements": []
     }
   ],
   "constraints": [],
