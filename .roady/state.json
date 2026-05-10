@@ -1,96 +1,204 @@
 {
   "project_id": "tokenops",
-  "version": 10,
+  "version": 116,
   "task_states": {
     "analytics-aggregator": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/analytics: read-only Aggregator over sqlite.Store. Bucket (hour/day) drives floor-divide on timestamp_ns/1e9 by bucket-width seconds for stable bucket keys; Group (provider/model/workflow/agent/none) maps to indexed events columns. Filter narrows by event type (defaults to prompt — workflow/optimization events do not carry direct token totals in indexed columns), provider/model, workflow_id/agent_id, and time window (Since/Until). AggregateBy returns []Row with BucketStart, GroupKey, Requests, Input/Output/TotalTokens, CostUSD, CostRecomputed; Summarize returns a single-row global rollup. spend.Engine integration: rows whose CostUSD = 0 trigger a per-bucket recompute that pulls (provider, model, input_tokens, output_tokens) for matching events and sums spend.Engine.Compute, attributing the count via Row.CostRecomputed so dashboards can flag stale pricing. 8 tests cover hour buckets + sums, group-by-model, missing-cost recompute (gpt-4o-mini @ 1M+1M tokens lands in $0.7-$0.8 band as expected), summary aggregation, workflow filter, empty store, day-bucket 24h alignment, time-window filter. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T23:24:53.897622+02:00",
+      "completed_at": "2026-05-09T23:27:30.882482+02:00",
+      "elapsed_minutes": 2
     },
     "anomaly-detector": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/anomaly: z-score spike detector over forecast.Point series. Two strategies: DetectFixed (single mean+stddev over the entire series — cheap, suitable for short reports) and DetectRolling (sliding baseline of WindowSize points before each candidate — adapts to regime shifts). Config defaults: WindowSize=12, Threshold=3.0 (3-sigma), MinPoints=4. ErrInsufficient sentinel when fewer samples than MinPoints. Constant-baseline (std=0) branch falls back to absolute thresholding (\u003e50% deviation fires) so flat series still surface large jumps. IncludeDips opt-in flag — default false because token spikes are the cost concern. Severity scales with abs(z) relative to threshold: low (\u003e=T), medium (\u003e=1.5T), high (\u003e=2T). Anomaly carries At, Value, Baseline, StdDev, ZScore, Severity, Direction (spike|dip). 8 tests cover fixed-window spike detection, rolling baseline adaptation to regime shift, dips ignored by default, dips flagged with IncludeDips, insufficient samples error for both strategies, severity-scale matrix, constant-baseline 2x jump fires, mean/std math sanity. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T09:23:15.240579+02:00",
+      "completed_at": "2026-05-10T09:24:57.62217+02:00",
+      "elapsed_minutes": 1
     },
     "async-pipeline": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/coaching: async batch Pipeline that wires replay.Engine + waste.Detector to a Sink (FuncSink adapter included). Job (WorkflowID, CostEstimateUSD) submitted via Submit (blocks on capacity, ctx, or Close). Worker pool of Config.Concurrency (default 2) drains a buffered queue (Config.QueueCapacity default 64). Cost budget enforcement via charge() — atomic CAS over millicent-scaled accumulator, jobs that would push total over CostBudgetUSD are skipped (counter incremented, warn-logged); zero budget disables the cap. Per-job process pipeline: replay.Replay → tracePlaceholder reconstructs a workflow.Trace from the replay result so waste.Detector scores it without re-querying the store → coaching events wrapped in eventschema.Envelope (UUID + SchemaVersion + EventTypeCoaching + UTC ts + configurable Source default \"coaching\") and forwarded to Sink. ErrEmptySession ignored silently; other replay errors logged. ErrInvalidConfig from Start when replay/detector/sink missing. ErrClosed from Submit after Close. Stats counters (Processed/Skipped/Emitted/CostSpent) exposed via atomics + Stats.String. 8 tests cover oversized-context coaching event emission via real sqlite+replay+detector wiring, cost budget skips beyond limit, empty session no-emit, ErrInvalidConfig on missing deps, ErrClosed after Close, Stats.String, FuncSink delegation. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T09:31:36.602058+02:00",
+      "completed_at": "2026-05-10T09:33:24.760041+02:00",
+      "elapsed_minutes": 1
     },
     "audit-log": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/audit + internal/storage/sqlite migration v2 add an append-only audit_log table (id PK, timestamp_ns, action, actor, target, details JSON; STRICT) plus indices on timestamp / (action,timestamp) / (actor,timestamp). Action enum: config_change, optimization_accept/reject, telemetry_toggle, redaction_update, budget_update, data_export. Recorder.Record validates action+actor required, mints UUIDv4 ID + UTC timestamp when zero, JSON-marshals nested Details, persists via the existing sqlite.Store DB handle. Recorder.Query supports Filter (action/actor/since/until/limit, default 1000), orders DESC by timestamp (newest-first for dashboards/CLI), NullString-safe target/details scan with Details JSON-decoded back to map[string]any preserving nested structure. No Update/Delete API by design — append-only. 9 tests cover record+query round-trip with details, filter by action, filter by actor, descending order, time-window filter, action+actor required validation, nil-receiver guard, limit cap, nested-details round-trip preserves map[string]any + numeric types. sqlite migration test still green (now records 2 rows in schema_migrations). go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T09:16:09.831742+02:00",
+      "completed_at": "2026-05-10T09:18:18.725363+02:00",
+      "elapsed_minutes": 2
     },
     "budget-alerts": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/budget: pure-compute Alert engine over per-window USD limits. Limit (Name, Window daily/weekly/monthly, LimitUSD, WarnAt/CritAt fractional thresholds with defaults 0.75 / 0.95, optional WorkflowID/AgentID scope). Severity (info/warn/critical) with String() rendering. AlertKind: threshold_reached (actual spend crossed warn/crit fraction of limit) and forecast_breach (cumulative actual + forecast prediction would cross limit). Evaluate(limit, actualUSD, forecast.Prediction) returns the appropriate Alerts; nil/empty forecast disables breach detection. EvaluateAll over a Limit slice with actualBy/forecastBy accessor callbacks, sorts by severity desc then Limit.Name. Forecast breach scans cumulative running spend, captures the first prediction.At where running \u003e= limit (BreachAt), bumps severity to critical when projected \u003e= 150% of limit. Messages format actual / limit / window in $ and %. 10 tests cover threshold warn/crit/no-alert at 50%/80%/96%, zero-limit no-op, forecast breach with BreachAt populated, no-breach when forecast stays under limit, 150%+ critical, EvaluateAll severity sorting, nil actualBy guard, Severity.String matrix, defaults applied at 76%/96%, message contains name/$/window. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T09:07:57.697221+02:00",
+      "completed_at": "2026-05-10T09:09:53.210015+02:00",
+      "elapsed_minutes": 1
     },
     "cli-replay": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/cli/{replay,replay_test}.go — tokenops replay session-id with --workflow/--agent/--since/--until/--json + waste analysis when workflow set"
+      ],
+      "started_at": "2026-05-10T10:09:57.951616+02:00",
+      "completed_at": "2026-05-10T10:13:21.70782+02:00",
+      "elapsed_minutes": 3
     },
     "cli-skeleton": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/cli (cobra v1.10): root command + start/status/version/config show subcommands. Persistent flags --config/-c, --listen, --log-level, --log-format apply on top of file+env config and re-validate. start spawns the daemon via internal/daemon.Run with SIGINT/SIGTERM handling. status pulls /healthz, /readyz, /version (text or --json), aggregates errors when daemon unreachable, supports --addr override and --https. config show prints effective config as YAML or JSON. internal/daemon factored out of cmd/tokenopsd so tokenops start and tokenopsd share the lifecycle. cmd/tokenops main.go now delegates to cli.Execute. Tests cover help, version, config (yaml+json+--config file+flag override+invalid log level), status (json/text/all-fail/real httptest.Server). End-to-end smoke: tokenops start binds 127.0.0.1:17878, tokenops status returns 200/ready/version, SIGTERM clean shutdown. Cross-platform binaries built via make build (-trimpath -ldflags). go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T21:47:12.832374+02:00",
+      "completed_at": "2026-05-09T21:55:50.737579+02:00",
+      "elapsed_minutes": 8
     },
     "cli-spend": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/cli/{spend,spend_test}.go — tokenops spend with summary, top-N consumers, 24h burn rate + sparkline, optional --forecast (Holt/Linear)"
+      ],
+      "started_at": "2026-05-10T10:13:23.300875+02:00",
+      "completed_at": "2026-05-10T10:15:25.797528+02:00",
+      "elapsed_minutes": 2
     },
     "clickhouse-schema": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "deployments/clickhouse/{001_events.sql,002_materialized_views.sql,003_kafka_pipeline.sql,README.md}: ClickHouse schema mirroring pkg/eventschema. 001 defines tokenops database + four MergeTree tables (events, optimizations, coaching, audit_log) partitioned by month with ORDER BY tuned for dashboard primary scans (day,type,workflow_id,timestamp for events). LowCardinality+ZSTD compression for enum-style + payload columns. Indexed projection columns (provider/model/workflow_id/agent_id/session_id/user_id/tokens/cost/latency/ttft/streaming/status/finish_reason) plus full payload JSON for forward-compat. 002 ships SummingMergeTree materialized views populated from events: hourly per-(provider,model), hourly per-workflow, daily per-(agent,model), daily optimizations rollup — what the dashboard hot paths read. 003 is optional Kafka ingest using the Kafka engine + JSONExtract* materialized view that parses envelopes into the events table; placeholder broker list / topic for operator configuration; degrades gracefully on missing fields. README documents apply order, direct INSERT path, and example TTL ALTER statements per retention window (90d prompts, 1y optimizations, 7y audit). Pure-SQL artifact — no Go code change."
+      ],
+      "started_at": "2026-05-10T09:27:14.611287+02:00",
+      "completed_at": "2026-05-10T09:28:39.260827+02:00",
+      "elapsed_minutes": 1
     },
     "dashboard-auth": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/dashauth/{auth,auth_test}.go bearer + password+session-cookie auth, OIDC stub interface, 9 passing tests"
+      ],
+      "started_at": "2026-05-10T10:54:38.357087+02:00",
+      "completed_at": "2026-05-10T10:56:23.907631+02:00",
+      "elapsed_minutes": 1
     },
     "dashboard-burn-graph": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/proxy/api.go /api/spend/series + LineChart.vue + SpendView.vue burn graph polling every 30s"
+      ],
+      "started_at": "2026-05-10T11:00:35.889069+02:00",
+      "completed_at": "2026-05-10T11:07:08.424871+02:00",
+      "elapsed_minutes": 6
     },
     "dashboard-forecast": {
-      "status": "pending",
+      "status": "done",
       "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "/api/spend/forecast + LineChart with confidence band rendered in SpendView"
+      ],
+      "started_at": "2026-05-10T11:07:19.469507+02:00",
+      "completed_at": "2026-05-10T11:07:21.584503+02:00",
       "elapsed_minutes": 0
     },
     "dashboard-heatmap": {
-      "status": "pending",
+      "status": "done",
       "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Heatmap.vue model × hour heatmap rendered in SpendView"
+      ],
+      "started_at": "2026-05-10T11:07:10.606267+02:00",
+      "completed_at": "2026-05-10T11:07:13.253734+02:00",
       "elapsed_minutes": 0
     },
     "dashboard-opt-list": {
-      "status": "pending",
+      "status": "done",
       "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "/api/optimizations + OptimizationsView.vue showing recs grouped by kind with decision badges"
+      ],
+      "started_at": "2026-05-10T11:07:24.004856+02:00",
+      "completed_at": "2026-05-10T11:07:25.907493+02:00",
       "elapsed_minutes": 0
     },
     "dashboard-skeleton": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "web/dashboard/ — Vue 3 + Vite + vue-router scaffold. Sidebar layout, design tokens (CSS custom props), typed API client, 5 routes (home/spend/workflows/optimizations/404). Builds clean (92KB→36KB gzip)."
+      ],
+      "started_at": "2026-05-10T10:41:09.772562+02:00",
+      "completed_at": "2026-05-10T10:44:41.491023+02:00",
+      "elapsed_minutes": 3
     },
     "dashboard-timeline": {
-      "status": "pending",
+      "status": "done",
       "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "/api/workflows + /api/workflows/:id endpoints + WorkflowsView.vue with step timeline + coaching findings"
+      ],
+      "started_at": "2026-05-10T11:07:15.421219+02:00",
+      "completed_at": "2026-05-10T11:07:17.319752+02:00",
       "elapsed_minutes": 0
     },
     "docs-site": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "web/docs/ — VitePress site with Quickstart/Configuration/CLI guide, 8 integration pages (3 SDKs, 3 CLIs, MCP, OTLP), 4 architecture pages, 4 runbook pages. Builds clean."
+      ],
+      "started_at": "2026-05-10T10:47:27.307631+02:00",
+      "completed_at": "2026-05-10T10:53:07.109355+02:00",
+      "elapsed_minutes": 5
     },
     "efficiency-score": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/efficiency: composite efficiency Score over workflow.Trace returning Total in [0,1] + 0-100 Grade plus per-component breakdown. Four components, default weights Context=0.4, IORatio=0.3, Loops=0.2, Diversity=0.1 (sum-normalised; zero weights fall back to defaults). Context score is 1/(1+x²) sigmoid around SoftContextLimit (default 16_384) penalised by ContextGrowthTotal/limit*0.3 to flag runaway growth. IORatio: 0-20% maps linearly to 0-1, 20-50% peak band centered at ~30%, 50%+ gentle decay so monologues don't score perfectly. Loops: full credit when longest consecutive same-agent run \u003c= MaxAgentLoopRun (default 4), linear penalty over 2× the limit, clamped at 0. Diversity rewards multi-agent / multi-model workflows (short runs ≤4 steps always full credit; longer runs scale with unique agents up to 3 + unique models up to 2). 8 tests cover nil/empty zero score, healthy multi-agent multi-model trace grade ≥70, oversized 80k context drops Context below 0.5, runaway solo loop drops Loops below 0.4, short solo retains full Diversity, zero-token zero IORatio, weights normalisation + zero fallback, Grade integer match Total*100 rounded. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T09:28:47.654763+02:00",
+      "completed_at": "2026-05-10T09:31:04.242828+02:00",
+      "elapsed_minutes": 2
     },
     "event-schema": {
       "status": "done",
@@ -104,99 +212,213 @@
       "elapsed_minutes": 3
     },
     "forecasting-core": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/forecast: two Forecaster implementations over (time, value) Point series. LinearForecaster fits y = a + b*t via OLS using index-as-x to avoid time-domain blow-up; falls back to a constant-mean forecast when x-variance collapses. HoltForecaster implements Holt's double exponential smoothing with configurable alpha/beta — defaults 0.5/0.3 when callers pass \u003c=0 or \u003e1. Both compute residual standard error from history and apply the 1.96 normal-approximation factor for 95% confidence intervals; Holt widens the band by sqrt(horizon) per standard exponential-smoothing CI guidance. Predictions carry timestamp + value + lower/upper bounds. SeriesFromRows adapts analytics.Row to Point series via TotalTokens / CostUSD accessors. ErrInsufficientHistory sentinel for series shorter than 2 points. 10 tests cover linear known-line zero-CI fit, timestamp spacing across horizon, insufficient history error, invalid horizon/interval args, CI widens with noise, Holt captures trend on linear-ish series within tolerance, Holt CI scales with horizon, Holt defaults applied, SeriesFromRows accessor wiring + nil-accessor guard, flat-series degenerate slope=0 mean fallback. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T09:04:24.694834+02:00",
+      "completed_at": "2026-05-10T09:07:12.789255+02:00",
+      "elapsed_minutes": 2
     },
     "integ-claude-code": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "docs/integrations/claude-code.md + scripts/smoketest-claude-code.sh"
+      ],
+      "started_at": "2026-05-10T10:35:48.837801+02:00",
+      "completed_at": "2026-05-10T10:37:30.71435+02:00",
+      "elapsed_minutes": 1
     },
     "integ-codex-cli": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "docs/integrations/codex-cli.md + scripts/smoketest-codex.sh"
+      ],
+      "started_at": "2026-05-10T10:35:50.478914+02:00",
+      "completed_at": "2026-05-10T10:37:36.694576+02:00",
+      "elapsed_minutes": 1
     },
     "integ-gemini-cli": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "docs/integrations/gemini-cli.md + scripts/smoketest-gemini.sh"
+      ],
+      "started_at": "2026-05-10T10:35:55.161717+02:00",
+      "completed_at": "2026-05-10T10:37:38.800106+02:00",
+      "elapsed_minutes": 1
     },
     "langchain-callback": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "integrations/python/tokenops_langchain/ — BaseCallbackHandler stamps TokenOps headers + configure_environment() for SDK base URLs + README + example"
+      ],
+      "started_at": "2026-05-10T10:57:56.286475+02:00",
+      "completed_at": "2026-05-10T11:00:12.685626+02:00",
+      "elapsed_minutes": 2
     },
     "local-model-integ": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/llm/{backend,backend_test}.go pluggable Backend interface with OllamaBackend and OpenAICompatBackend implementations + 6 passing tests"
+      ],
+      "started_at": "2026-05-10T10:45:11.296759+02:00",
+      "completed_at": "2026-05-10T10:47:04.310276+02:00",
+      "elapsed_minutes": 1
     },
     "mcp-server": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/mcp/{server,tools,server_test}.go JSON-RPC 2.0 stdio server with 5 tools (spend_summary, top_consumers, burn_rate, forecast, workflow_trace) + cmd/tokenops-mcp binary"
+      ],
+      "started_at": "2026-05-10T10:37:41.847414+02:00",
+      "completed_at": "2026-05-10T10:40:44.218562+02:00",
+      "elapsed_minutes": 3
     },
     "openai-agents-mw": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "integrations/python/tokenops_openai_agents/ — TokenOpsClient(AsyncOpenAI) with workflow/agent/session headers pre-applied + Agents SDK example"
+      ],
+      "started_at": "2026-05-10T10:57:58.268899+02:00",
+      "completed_at": "2026-05-10T11:00:14.853501+02:00",
+      "elapsed_minutes": 2
     },
     "opt-context-trim": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/optimizer/contexttrim: Trimmer implements optimizer.Optimizer (Kind = OptimizationTypeContextTrim). Config: KeepSystem (default true), KeepLastTurns (default 4), MinDroppedMessages (default 2 — avoids noisy 0-saved events on short conversations). trimMessages walks roles tail-first counting user-message turns, KeepSystem retains system prompt globally regardless of position. OpenAI body rewriter parses request as map[string]json.RawMessage, leaves all top-level fields (model, temperature, tool_choice, ...) untouched, replaces only the messages array. Anthropic body rewriter same shape but the system field lives at the body root and is left intact. Each rebuilt message is round-tripped via json.RawMessage so multimodal content / tool_calls / metadata survive untouched. Estimated savings via tokenizer.Registry.CountText over the dropped raw JSON; falls back to bytes/4 when tokenizer is nil. Quality score: 0.95 - 0.02*dropped, clamped at 0.6, communicates reduced confidence on aggressive trims. Recommendation includes ApplyBody so accepted recommendations swap the request body upstream; reason carries \"dropped N of M messages\". 9 tests cover OpenAI long-conversation trim retaining system + last 2 user turns, short-conversation no-op, KeepSystem=false drops system, top-level fields preserved (model/tool_choice/temperature), unknown provider no-op, malformed body no-op, Anthropic trim retaining system field, quality-score bounds, savings scale with tokenizer. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T00:31:09.166274+02:00",
+      "completed_at": "2026-05-10T00:33:47.339248+02:00",
+      "elapsed_minutes": 2
     },
     "opt-dedupe": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/optimizer/dedupe/{dedupe,dedupe_test}.go — Jaccard-shingle dedupe with threshold + min-bytes config, 11 passing tests inc. pipeline integration"
+      ],
+      "started_at": "2026-05-10T10:07:35.527033+02:00",
+      "completed_at": "2026-05-10T10:09:55.05661+02:00",
+      "elapsed_minutes": 2
     },
     "opt-engine-core": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/optimizer: pluggable Optimizer interface (Kind + Run(ctx, *Request) → []Recommendation) and ordered Pipeline executing optimizers and emitting *eventschema.OptimizationEvent per recommendation. Mode aliases re-export passive/interactive/replay so callers do not import eventschema directly. Request carries PromptHash, Provider/Model, raw Body, attribution (workflow/agent), token counts, Mode, and LatencyBudget. Recommendation carries Kind, savings + quality + reason + LatencyImpact + optional ApplyBody for rewriters. Pipeline.Run honours mode: passive emits skipped events (body unchanged); interactive consults Decider — accepted+ApplyBody → applied (body replaced), accepted-no-body → accepted (body kept), rejected/no-decider → rejected; replay records but never applies. Optimizer errors recorded as skipped events with optimizer_error reason. LatencyBudget enforced before each stage via injectable clock; budget-exceeded stages emit synthetic skipped events with latency_budget_exceeded reason and skip Run entirely (verified third optimizer Run call count = 0). Recommendation.Kind falls back to Optimizer.Kind() when unset; LatencyImpact falls back to wall-clock stage latency. 12 tests cover passive/interactive/rejection/no-decider/replay/error/ordering/latency-budget/nil-req/empty-pipeline/kind-fallback/accepted-no-body. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T23:01:34.383158+02:00",
+      "completed_at": "2026-05-09T23:04:09.547526+02:00",
+      "elapsed_minutes": 2
     },
     "opt-prompt-compress": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/optimizer/promptcompress: heuristic Compressor implementing optimizer.Optimizer (Kind = OptimizationTypePromptCompress). MVP transformations are conservative + non-destructive: collapse runs of whitespace (3+ blank lines, 2+ spaces/tabs), strip trailing whitespace, remove HTML/XML comments, normalise smart quotes / em-dashes / non-breaking spaces to ASCII, dedupe consecutive identical lines (common artefact when agents paste tool output verbatim). LLMLingua-style LM scoring is left as a follow-up; the Tokenizer Registry seam already supports plugging a real scorer. compressBody walks OpenAI/Anthropic chat bodies via map[string]json.RawMessage round-trip, compresses string content + array-of-parts text content (image_url and other non-text parts pass through untouched), preserves all top-level fields (model/temperature/tool_choice). MinSavingsTokens = 16 default suppresses 1-token noise. QualityScore = 0.5 + 0.5*ratio capped at 0.95 — light trims score high, aggressive ones lower so quality-gate can refuse. EstimatedSavingsTokens via tokenizer canary or bytes/4 fallback. 9 tests cover whitespace collapse, HTML comment strip, smart-quote normalisation, consecutive-line dedupe, large-redundancy recommendation (200x repeated padded line), below-threshold silence, unknown provider no-op, malformed body no-op, array-content image-part preservation, quality-score bounds. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T09:21:23.805417+02:00",
+      "completed_at": "2026-05-10T09:23:08.328819+02:00",
+      "elapsed_minutes": 1
     },
     "opt-quality-gate": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/optimizer/qualitygate: lightweight gate that refuses optimisations below a quality threshold. NewDecider(threshold, inner) returns optimizer.Decider for interactive mode — rejects QualityScore \u003c threshold, otherwise delegates to inner (or returns true when nil). DefaultThreshold = 0.85 (empirical break-point in compression studies); zero threshold falls back to default. Wrap(inner, threshold) returns optimizer.Optimizer that runs inner and post-filters: low-quality recs lose their ApplyBody (so passive + interactive pipelines never apply them) but keep their metadata for telemetry; Reason is annotated \"quality_below_threshold(score=X.XX, min=Y.YY): \u003coriginal\u003e\" so dashboards can attribute the gate. Kind() pass-through to inner. 9 tests cover decider accept/reject above/below threshold, decider inner delegation, decider does-not-invoke-inner below threshold, default threshold, wrap clears ApplyBody + annotates reason while preserving high-quality bodies, error propagation, Kind pass-through, annotateReason format. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T08:45:45.890145+02:00",
+      "completed_at": "2026-05-10T08:49:02.883739+02:00",
+      "elapsed_minutes": 3
     },
     "opt-retrieval-prune": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/optimizer/retrievalprune: heuristic Pruner implementing optimizer.Optimizer (Kind = OptimizationTypeRetrievalPrune). Without retriever scores the optimizer falls back to position-based top-N preservation (most retrievers concatenate descending-relevance), gated on MaxChunks (default 8) + KeepTopN (default 4, auto-capped at MaxChunks-1) + MinSavingsTokens (default 64) thresholds. splitChunks detects two common retrieval delimiters: a line of 3+ dashes / 3+ equals (primary) and numbered headings (\"1.\" / \"[1]\") fallback. pruneBody walks OpenAI/Anthropic chat bodies via map[string]json.RawMessage, applies pruneString to string content + array-of-parts text content (image_url and other non-text parts pass through untouched), preserves all top-level fields. EstimatedSavingsTokens via tokenizer canary or bytes/4 fallback. QualityScore = 0.85 (operator should review — pruning relevance-ordered material is generally safe but some bottom chunks may be relevant). 9 tests cover dash-separated split, numbered-heading fallback, no-marker nil return, oversized retrieval rec (10 chunks → 4 kept, body shrinks), under-limit no-op, unknown provider no-op, malformed body no-op, below-savings-threshold no-op, KeepTopN capping, top-level field preservation. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T09:25:21.719524+02:00",
+      "completed_at": "2026-05-10T09:26:56.289521+02:00",
+      "elapsed_minutes": 1
     },
     "opt-router": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/optimizer/router: Router implements optimizer.Optimizer (Kind = OptimizationTypeRouter). Rule(Provider, FromModel→ToModel, Quality, Fallbacks) — exact-match or \"*\"-suffix prefix-match per provider. Config.IsAvailable gates each candidate (default always-true), Config.MinQuality silences low-confidence routes (default 0.7). Run: matches rule, picks first available target from {ToModel, Fallbacks...}, rewrites top-level \"model\" JSON field via map[string]json.RawMessage round-trip preserving all other body fields (temperature, tool_choice, ...), computes savings via spend.Engine — original_cost vs rerouted_cost — reports as EstimatedSavingsUSD with full token volume in EstimatedSavingsTokens. Routes to more expensive models report zero savings but still emit the recommendation. When all targets unavailable: emits a passive (no ApplyBody) rec with reason \"router: no available target for \u003cmodel\u003e\" so dashboards flag misroutes. ErrEmptyBody / ErrNoModelField sentinels. 10 tests cover gpt-4o → gpt-4o-mini exact match (positive USD savings, body model rewritten), prefix matching, no-match no-op, MinQuality silencing, fallback chain (primary unavailable → second fallback wins), all-targets-unavailable misroute event, upgrade-to-expensive zero-savings, top-level field preservation, nil request, Kind. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T08:50:47.208362+02:00",
+      "completed_at": "2026-05-10T08:52:40.96985+02:00",
+      "elapsed_minutes": 1
     },
     "otel-exporter": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/otlp/exporter.go OTLP/HTTP/JSON exporter with GenAI semantic attrs + redaction passthrough; internal/events/multisink.go fan-out; daemon wiring under cfg.OTel.Enabled with TOKENOPS_OTEL_* env"
+      ],
+      "started_at": "2026-05-10T10:31:40.777583+02:00",
+      "completed_at": "2026-05-10T10:35:26.757141+02:00",
+      "elapsed_minutes": 3
     },
     "proxy-bench": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/proxy/bench_test.go + Makefile bench/bench-gate + ci.yml bench-gate job"
+      ],
+      "started_at": "2026-05-10T10:01:55.800777+02:00",
+      "completed_at": "2026-05-10T10:04:55.756044+02:00",
+      "elapsed_minutes": 2
     },
     "proxy-cache": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/proxy/cache/{cache,cache_test}.go LRU+TTL+size cache; internal/proxy/{cache_middleware,cache_test}.go middleware with bypass/refresh headers + cache-hit PromptEvent + skips streaming/non-2xx"
+      ],
+      "started_at": "2026-05-10T10:27:38.870086+02:00",
+      "completed_at": "2026-05-10T10:31:38.651933+02:00",
+      "elapsed_minutes": 3
     },
     "proxy-events": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/events: AsyncBus drains a buffered queue (default cap 1024) into a Sink (sqlite.Store fits) via worker goroutine batching to BatchSize/BatchWait (default 64/100ms). Publish is non-blocking — full queue or post-Close drops the envelope and increments DroppedCount. Close drains queued envelopes within timeout (idempotent). Noop bus available for disabled mode. internal/proxy/observation.go: observerMiddleware captures the request body (4 MB cap) before the ReverseProxy, restores via NopCloser+correct Content-Length, computes sha256 PromptHash, runs providers.Normalize for model/message-count/system/max-output, runs tokenizer.Registry.PreflightCount for input + context size, lifts X-Tokenops-{Workflow,Agent,Session,User}-Id attribution headers, and stashes the requestObservation in request.Context. observerMeter (StreamMeter) per-stream meter records FirstByteAt (TTFT), captures up to 4 MB of response body for output-token estimation via tokenizer.CountText, and on Done builds a *eventschema.PromptEvent envelope (UUID v4 ID, schema version, latency/TTFT/streaming/status, all attribution + token counts) and publishes to the bus. Server gains WithEventBus / WithTokenizer / WithSource options; presence of bus toggles observer middleware in router.go and swaps the StreamMeter to observerMeter. Daemon: cfg.Storage.{Enabled,Path} drives sqlite.Open + events.NewAsync wiring, default path ~/.tokenops/events.db, env overrides TOKENOPS_STORAGE_{ENABLED,PATH}, shutdown drains the bus + closes the store, drained log line carries published/dropped counts. End-to-end smoke (Python upstream stub, daemon w/ TOKENOPS_PROVIDER_OPENAI_URL + storage env): 3 chat requests through /openai/v1/chat/completions yielded \"event bus drained published=3 dropped=0\" and three sqlite rows: type=prompt provider=openai model=gpt-4o-mini workflow_id=wf-e2e agent_id=agent-x input=10 output=31. 12 events tests + 4 proxy observer tests cover non-streaming emission, SSE streaming flag + TTFT, hash stability across identical bodies, control-endpoint exclusion, batch flush + size + drop + close-drain + post-close drop + sink-error-tolerance + nil ignore + batch-wait flush. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T23:05:54.923156+02:00",
+      "completed_at": "2026-05-09T23:13:21.368704+02:00",
+      "elapsed_minutes": 7
     },
     "proxy-providers": {
       "status": "done",
@@ -221,34 +443,70 @@
       "elapsed_minutes": 4
     },
     "proxy-streaming": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/proxy/streaming.go: StreamMeter (per-server) + RequestMeter (per-stream) two-tier interface so proxy-tokenizer can plug counting/tokenisation in later. WithStreamMeter option, noopMeter default. isStreamingResponse trims+lowercases Content-Type for \"text/event-stream\" detection. meteredBody wraps upstream resp.Body: Read invokes Observe on each non-empty chunk, Close + EOF both fire Done exactly once via atomic CAS. internal/proxy/router.go: ReverseProxy now sets FlushInterval=-1 (immediate flush, explicit even though Go 1.17+ auto-detects SSE), ModifyResponse spawns a fresh meter, sets X-Accel-Buffering=no on SSE responses (defends against intermediary proxies), and replaces resp.Body with meteredBody. Cancel propagation: client req.Context() flows through ReverseProxy → upstream RoundTrip → upstream handler r.Context().Done(); test confirms upstream context cancels within 2s of client cancel. Tests: SSE chunks delivered with per-event timing (first within 2× event delay, last spread ≥ 1× event delay vs first — buffering would collapse the spread), non-streaming JSON still metered, client cancel propagates to upstream context, isStreamingResponse Content-Type matrix, meteredBody Done fires exactly once on Close+EOF. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T22:54:07.973777+02:00",
+      "completed_at": "2026-05-09T22:57:26.642411+02:00",
+      "elapsed_minutes": 3
     },
     "proxy-tls": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/tlsmint: ECDSA P-256 self-signed CA + leaf bundle. EnsureBundle is idempotent — first run mints CA (10y) + leaf (1y) and writes ca.{key,crt}+tls.{key,crt} (keys 0o600, certs 0o644) to dir; subsequent runs LoadBundle from existing PEM files (verified via re-ensure preserving leaf serial). Leaf SANs auto-include localhost+127.0.0.1+::1, with caller-supplied Hostnames/IPAddresses appended. Bundle exposes CAPool() (x509.CertPool) and TLSConfig() pinning MinVersion TLS 1.2 + ServerAuth/ClientAuth EKUs. internal/proxy: WithTLS(*tls.Config) option, Start branches to ServeTLS when configured, TLSEnabled() observable, listening log line includes tls flag. internal/config: TLSConfig (Enabled, CertDir, Hostnames) under \"tls\", env overrides TOKENOPS_TLS_ENABLED + TOKENOPS_TLS_CERT_DIR. internal/daemon: when cfg.TLS.Enabled, resolveCertDir defaults to ~/.tokenops/certs, EnsureBundle, plug into proxy.WithTLS, log leaf NotAfter. internal/cli: --tls true|false + --cert-dir persistent flags layered on loadConfig. End-to-end smoke: tokenops start --tls true --cert-dir /tmp/X mints bundle, curl without trust → \"tls: unknown certificate authority\" (good — verification active), curl --cacert ca.crt → 200 JSON healthz. 9 tlsmint tests + 2 proxy TLS tests cover mint/persist/idempotent, SAN merging, x509 verify, end-to-end TLS handshake, plain-HTTP-against-TLS rejection. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T22:47:42.192061+02:00",
+      "completed_at": "2026-05-09T22:52:33.631447+02:00",
+      "elapsed_minutes": 4
     },
     "proxy-tokenizer": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/tokenizer: Tokenizer interface (Provider, CountText, CountMessages) + Registry seam so a tiktoken/SentencePiece-backed implementation can replace heuristics via Registry.Set without touching callers. heuristic.go: bytes-per-token model with separate ASCII vs non-ASCII ratios (CJK/emoji densify per char in every modern BPE/SentencePiece scheme), per-message + wrapper overhead constants. NewOpenAITokenizer (cl100k/o200k tuned, 4 ASCII / 1.5 non-ASCII chars per token, 4 per-message + 3 wrapper), NewAnthropicTokenizer (3.5/1.4, 5+3), NewGeminiTokenizer (4.0/1.6, 3+2). Registry seeds all three by default; Lookup returns ErrUnknownProvider for unknowns. extract.go: ExtractMessages parses real provider request bodies — OpenAI /v1/chat/completions (string + array-of-parts content, image_url parts dropped), Anthropic /v1/messages (system at body root pulled forward as a synthetic system message, array content), Gemini /v1/models/.../generateContent (systemInstruction.parts + contents.parts joined by newline). flattenContent handles string/array/object polymorphism without panicking on multimodal parts. preflight.go: Registry.PreflightCount tries structured ExtractMessages first, falls back to CountText over the raw body for completion-style endpoints. 16 tests pass: text counting bounds, CJK density vs ASCII, Anthropic ratio densest, message envelope \u003e raw text, registry default+override+unknown, real OpenAI/Anthropic/Gemini JSON extraction including multimodal-skip and Gemini multi-part join, empty-body, preflight messages-vs-fallback paths. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T22:58:11.965005+02:00",
+      "completed_at": "2026-05-09T23:01:04.533646+02:00",
+      "elapsed_minutes": 2
     },
     "rbac-scaffold": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/rbac/{rbac,rbac_test}.go — 4 roles (admin/operator/viewer/anonymous), 10 permissions, context plumbing + HTTP middleware, 8 passing tests"
+      ],
+      "started_at": "2026-05-10T10:56:26.686758+02:00",
+      "completed_at": "2026-05-10T10:57:33.041189+02:00",
+      "elapsed_minutes": 1
     },
     "redaction": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/redaction: pattern detector with built-in rules for OpenAI sk-/sk-proj-, Anthropic sk-ant-api03-, Gemini AIza, GitHub gh[pousr]_, AWS AKIA + aws_secret_access_key=value capture, JWT (eyJ...), Bearer header (capture-only), email. Anthropic ordered before OpenAI to win on shared sk- prefix via mergeFindings stable preference. Shannon-entropy fallback (FieldsFunc tokeniser, min len 20, threshold 4.5 bits/char) gated by EntropyEnabled. Redactor.Redact rewrites to \u003credacted:KIND\u003e placeholders preserving non-secret context (e.g. \"Bearer \u003credacted:bearer_token\u003e\"); Redactor.Detect runs no-mutation dry runs for audit. Capture-group rules redact only the secret span, leaving labels intact. RedactEnvelope walks Source, Attributes, and per-payload string fields (PromptEvent UserID/AgentID/etc, WorkflowEvent IDs, OptimizationEvent.Reason, CoachingEvent.Summary/Details/ReplayMetadata) leaving numeric and enum fields alone. Tests cover provider-key detection, Bearer/AWS-secret capture-only behaviour, plain-text + non-secret untouched, entropy enable/disable, Detect non-mutation, mergeFindings overlap resolution, all four envelope payload types, nil envelope safety. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T22:30:34.059311+02:00",
+      "completed_at": "2026-05-09T22:34:06.069674+02:00",
+      "elapsed_minutes": 3
     },
     "replay-engine": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/replay: pure read+compute Engine over sqlite.Store, optimizer.Pipeline, and (optional) spend.Engine. SessionSelector picks history by WorkflowID/SessionID/AgentID with Since/Until/Limit. Replay loads prompts via sqlite.Filter, runs each through the pipeline in optimizer.ModeReplay (recommendations only, never mutates request), and aggregates into Result with per-step StepDiff. StepDiff carries OriginalEnvelope, OriginalCostUSD/InputTokens/OutputTokens, OptimizationEvents, EstimatedSavingsTokens (sum of recommendations), EstimatedSavingsUSD (recommendation USD when set, else token-savings priced via spend.Engine at the step's input rate). When OriginalCostUSD == 0, replay recomputes via spend.Engine to keep historical pre-spend-engine prompts comparable. Result.SavingsRatio surfaces $-savings / original. ErrEmptySession sentinel for selector miss. 7 tests cover load+savings, original-cost recompute (gpt-4o-mini @ 1M+1M lands $0.7-$0.8), token-to-USD savings via spend (gpt-4o-mini input @ $0.15/M), empty session, savings ratio, replay-mode flag (Decision=skipped, Mode=replay), session/agent filter dispatch. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T23:54:18.733113+02:00",
+      "completed_at": "2026-05-09T23:56:40.369263+02:00",
+      "elapsed_minutes": 2
     },
     "repo-bootstrap": {
       "status": "done",
@@ -262,50 +520,104 @@
       "elapsed_minutes": 4
     },
     "retention-config": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/retention: per-event-type Policy(EventType, KeepFor) + Pruner over sqlite.Store. Run iterates policies, computes cutoff = now - KeepFor (UTC), DELETE FROM events WHERE type=? AND timestamp_ns\u003c?, returns PruneResult{type, cutoff, deleted}. Zero/negative KeepFor disables pruning for that type. audit_log table intentionally unmanaged (forensic queries need long retention). Scheduler wraps Pruner in a goroutine driven by Interval (default 1h), fires Run immediately on Start so freshly-booted daemons reclaim space without waiting; ticker drains until ctx cancellation. Wait blocks via sync.Once-guarded done channel for idempotent join. Injectable clock for deterministic tests. 6 tests cover prune older-than-window (3 events, 1 deleted), zero-window skip, per-type policy isolation (prompt pruned, workflow untouched), nil receiver guard, scheduler immediate-run pruning, default interval. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T09:19:54.514273+02:00",
+      "completed_at": "2026-05-10T09:21:13.201184+02:00",
+      "elapsed_minutes": 1
     },
     "sdk-shim-anthropic": {
-      "status": "pending",
+      "status": "done",
       "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "docs/sdk/anthropic.md + internal/proxy/sdkshim_test.go (TestSDKShimAnthropic streaming)"
+      ],
+      "started_at": "2026-05-10T10:07:24.146661+02:00",
+      "completed_at": "2026-05-10T10:07:25.687497+02:00",
       "elapsed_minutes": 0
     },
     "sdk-shim-gemini": {
-      "status": "pending",
+      "status": "done",
       "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "docs/sdk/gemini.md + internal/proxy/sdkshim_test.go (TestSDKShimGemini)"
+      ],
+      "started_at": "2026-05-10T10:07:28.434436+02:00",
+      "completed_at": "2026-05-10T10:07:30.129071+02:00",
       "elapsed_minutes": 0
     },
     "sdk-shim-openai": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "docs/sdk/openai.md + internal/proxy/sdkshim_test.go (TestSDKShimOpenAI)"
+      ],
+      "started_at": "2026-05-10T10:04:57.162164+02:00",
+      "completed_at": "2026-05-10T10:07:22.608782+02:00",
+      "elapsed_minutes": 2
     },
     "spend-engine": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/spend: pricing Table keyed by (Provider, Model-or-prefix) with USD-default Currency. DefaultTable seeds public list prices for OpenAI (gpt-4o*, gpt-4o-mini*, gpt-4-turbo*, gpt-3.5-turbo*, o1*), Anthropic (claude-opus-4-7*, claude-sonnet-4-6*, claude-haiku-4-5*, claude-3-5-{sonnet,haiku}*), and Gemini (2.5-pro/flash, 1.5-pro/flash) — all $/M tokens with cached-input rates where the provider publishes them. Lookup: exact match wins, otherwise longest-prefix wildcard (\"*\"-suffixed key) per provider. ErrUnknownModel for misses (errors.Is friendly). Engine.Compute prefers ResponseModel over RequestModel, splits InputTokens into cached vs uncached and bills CachedInputPerMillion (with InputPerMillion fallback when cached rate is 0), clamps over-reported cached counts. Apply stamps PromptEvent.CostUSD; ApplyToEnvelope is no-op for non-Prompt payloads. Table.MergeOverrides layers partial rate overrides via Rate.Effective so YAML/config can override only the fields it cares about; currency override supported. 18 tests pass: gpt-4o-mini round numbers, ResponseModel preference, cached billing math, cached-fallback, unknown-model error, longest-prefix vs exact-match lookup, Apply, ApplyToEnvelope (workflow + nil), MergeOverrides (partial + new), currency override, default currency, nil compute, perMillion guards, cached-clamp, default-table provider coverage. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T22:43:23.905566+02:00",
+      "completed_at": "2026-05-09T22:45:43.218786+02:00",
+      "elapsed_minutes": 2
     },
     "sqlite-store": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/storage/sqlite: Store with Open(ctx, path, Options) running incremental migrations recorded in schema_migrations, modernc.org/sqlite pure-Go driver, DSN tuned (WAL, synchronous NORMAL, foreign_keys ON, busy_timeout). events table (STRICT) with indexed projection columns (timestamp_ns, day, type, workflow_id, agent_id, session_id, provider/model) plus full payload JSON. Append + AppendBatch atomic via tx with prepared INSERT, ON CONFLICT(id) DO NOTHING for idempotent retries. Query with Filter (type, workflow/agent/session, provider/model, time window, limit), Count, DB() escape hatch. Schema bug fix in pkg/eventschema/optimization.go: Type field renamed to Kind to remove conflict with Payload.Type() method. Tests cover migration idempotency, prompt round-trip, all-types round-trip, batch atomicity, ON CONFLICT idempotency, filter combinations (workflow/provider+model/type/time/limit), validation errors, empty path. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-09T10:20:19.901459+02:00",
+      "completed_at": "2026-05-09T21:46:13.447875+02:00",
+      "elapsed_minutes": 685
     },
     "vscode-ext-mvp": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "integrations/vscode/ — extension manifest + 3 commands + sidebar summary tree + burn-graph + optimizations webviews. tsc compiles clean."
+      ],
+      "started_at": "2026-05-10T11:07:43.965189+02:00",
+      "completed_at": "2026-05-10T11:09:48.519669+02:00",
+      "elapsed_minutes": 2
     },
     "waste-detector": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/waste: pure read+compute Detector over workflow.Trace emitting eventschema.CoachingEvent recommendations. Patterns implemented: OversizedContext (MaxContextSize \u003e= MaxContextTokens, default 32_768) → CoachingKindTrimContext with savings = excess tokens; RunawayGrowth (ContextGrowthTotal \u003e= ContextGrowthLimitTokens, default 16_384) → CoachingKindTrimContext flagging cumulative growth across steps; RepeatedAgentLoop (longest consecutive run of identical AgentID \u003e= MaxConsecutiveAgentLoops, default 4) → CoachingKindBreakRecursion attributing the offending agent; PromptHashRecursion (consecutive steps with identical PromptHash) → CoachingKindReuseCache with prompt_hash in ReplayMetadata. Empty AgentID resets the run counter so anonymous prompts do not falsely accumulate. Detector is stateless; Config zero values backfilled via defaults(). 7 tests cover oversized context, runaway growth, agent loop attribution, recursion + replay metadata, nil/empty trace no-op, healthy trace produces zero findings, default config values. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T08:58:57.77871+02:00",
+      "completed_at": "2026-05-10T09:01:22.572072+02:00",
+      "elapsed_minutes": 2
     },
     "workflow-trace": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/workflow: Reconstruct loads all PromptEvents for a workflow_id from sqlite.Store (Type=prompt, WorkflowID filter, limit 10k), orders them by timestamp, and assembles a Trace with per-Step deltas (Index, Envelope, PromptEvent, ContextDelta = input_tokens(t) - input_tokens(t-1), Latency, StartGap = ts(t) - ts(t-1)) and rollups (StepCount, StartedAt/EndedAt/Duration, TotalInput/Output/TotalTokens, TotalCostUSD, MaxContextSize, ContextGrowthTotal = sum(positive ContextDelta), Models map, Agents map). spend.Engine integration: when stored CostUSD is 0, Reconstruct recomputes via spend.Engine to keep historical pre-spend-engine prompts comparable. Trace.Summarize collapses to a flat Summary (workflow id + step count + total tokens + cost + duration + max context + growth + unique model/agent counts) suitable for table output. ErrNoTrace sentinel for missing workflow. 9 tests cover timestamp ordering (out-of-order inserts retrieved in order), context growth (only positive deltas counted, max captured), totals (tokens/cost/models/agents maps), zero-cost recompute (gpt-4o-mini 1M+1M lands $0.7-$0.8), empty workflow, summarize, nil store, empty workflow id, StartGap. go test -race ./... + go vet + golangci-lint v2 clean."
+      ],
+      "started_at": "2026-05-10T08:53:59.339292+02:00",
+      "completed_at": "2026-05-10T08:57:24.894539+02:00",
+      "elapsed_minutes": 3
     }
   },
-  "updated_at": "2026-05-09T09:12:06.649783+02:00"
+  "updated_at": "2026-05-10T11:09:48.519669+02:00"
 }
