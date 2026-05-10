@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 139,
+  "version": 142,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -585,6 +585,17 @@
       "completed_at": "2026-05-09T21:46:13.447875+02:00",
       "elapsed_minutes": 685
     },
+    "task-branch-protection-compliance-guardrail": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Added PR-only guardrails: scripts/require-pr-branch.sh, scripts/git-hooks/pre-push, Makefile policy-guard/install-hooks targets, CONTRIBUTING branch protection policy. Verified with make verify."
+      ],
+      "started_at": "2026-05-10T12:57:22.298377+02:00",
+      "completed_at": "2026-05-10T12:58:41.157966+02:00",
+      "elapsed_minutes": 1
+    },
     "task-cli": {
       "status": "done",
       "path": "",
@@ -673,6 +684,11 @@
       "completed_at": "2026-05-10T12:27:57.794422+02:00",
       "elapsed_minutes": 0
     },
+    "task-operator-wedge-kpi-scorecard": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
     "task-optimization-engine": {
       "status": "done",
       "path": "",
@@ -684,6 +700,21 @@
       "completed_at": "2026-05-10T12:29:31.190741+02:00",
       "elapsed_minutes": 0
     },
+    "task-optimization-quality-evals-framework": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "task-risk-based-test-coverage-uplift": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "task-security-finding-signal-governance": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
     "task-security-privacy": {
       "status": "done",
       "path": "",
@@ -693,6 +724,11 @@
       ],
       "started_at": "2026-05-10T12:30:14.490793+02:00",
       "completed_at": "2026-05-10T12:30:22.590987+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-telemetry-contract-and-lineage-control": {
+      "status": "pending",
+      "path": "",
       "elapsed_minutes": 0
     },
     "task-tokenops-proxy": {
@@ -740,5 +776,5 @@
       "elapsed_minutes": 3
     }
   },
-  "updated_at": "2026-05-10T12:30:22.590987+02:00"
+  "updated_at": "2026-05-10T12:58:41.157967+02:00"
 }
