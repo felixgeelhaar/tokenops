@@ -3,103 +3,61 @@
   "spec_id": "tokenops",
   "tasks": [
     {
-      "id": "task-tokenops-proxy",
-      "title": "Implement TokenOps Proxy",
-      "description": "Implement the feature: TokenOps Proxy. Local proxy intercepting requests between clients and LLM providers. Foundation for all other components.",
-      "priority": "medium",
-      "estimate": "",
+      "id": "task-fra-status-blockers",
+      "title": "Add blockers[] + next_actions[] to status",
+      "description": "Extend internal/daemon (or wherever /healthz, /readyz, /version, MCP status are wired) so status responses include: blockers []string (e.g., \"storage_disabled\", \"providers_unconfigured\", \"rules_disabled\") and next_actions []string (e.g., \"run `tokenops init`\"). Derive from Config struct. Unit tests for each blocker state. Acceptance: tokenops_status MCP response returns populated arrays when subsystems off; empty when all healthy; /readyz HTTP exposes same JSON shape.",
+      "priority": "high",
+      "estimate": "2h",
       "depends_on": [],
-      "feature_id": "tokenops-proxy"
+      "feature_id": "first-run-activation-flow",
+      "source": {}
     },
     {
-      "id": "task-optimization-engine",
-      "title": "Implement Optimization Engine",
-      "description": "Implement the feature: Optimization Engine. Reduces token waste in real time via compression deduplication retrieval pruning context trimming adaptive routing.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "optimization-engine"
+      "id": "task-fra-disabled-error-contract",
+      "title": "Disabled-subsystem structured error contract",
+      "description": "When Storage.Enabled=false: tokenops_spend_summary, tokenops_burn_rate, tokenops_forecast, tokenops_top_consumers, tokenops_audit, tokenops_domain_events return {\"error\":\"storage_disabled\",\"hint\":\"run `tokenops init` then restart daemon\"} with non-success status code on HTTP, MCP error envelope. Same pattern for Rules.Enabled=false (rules_* tools) and Providers=nil (proxy routes). Tests cover each gated path. Acceptance: no MCP tool returns empty success when its subsystem is disabled.",
+      "priority": "high",
+      "estimate": "3h",
+      "depends_on": [
+        "task-fra-status-blockers"
+      ],
+      "feature_id": "first-run-activation-flow",
+      "source": {}
     },
     {
-      "id": "task-observability-platform",
-      "title": "Implement Observability Platform",
-      "description": "Implement the feature: Observability Platform. Token analytics spend tracking workflow attribution latency tracking efficiency scoring.",
-      "priority": "medium",
-      "estimate": "",
+      "id": "task-fra-init-command",
+      "title": "Implement `tokenops init` CLI wizard",
+      "description": "Add internal/cli init subcommand. Behaviour: detect existing config; if absent, write default config to platform path ($XDG_CONFIG_HOME/tokenops/config.yaml or ~/.config/tokenops/config.yaml on darwin/linux); enable Storage with sqlite path at $XDG_DATA_HOME/tokenops/db (or ~/.tokenops/db), enable Audit, enable Rules with Root=$PWD and RepoID=basename($PWD), keep TLS off, leave Providers empty (user adds later). Idempotent: re-running detects existing config and prints diff or no-op message. Flags: --force overwrite, --print-only dry-run. Acceptance: cmd/tokenops integration test runs init twice; second run reports no changes; resulting config passes Config.Load round-trip.",
+      "priority": "high",
+      "estimate": "4h",
       "depends_on": [],
-      "feature_id": "observability-platform"
+      "feature_id": "first-run-activation-flow",
+      "source": {}
     },
     {
-      "id": "task-coaching-engine",
-      "title": "Implement Coaching Engine",
-      "description": "Implement the feature: Coaching Engine. Replays expensive sessions generates optimized alternatives teaches prompt efficiency. Local models async batch analysis.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "coaching-engine"
+      "id": "task-fra-demo-command",
+      "title": "Implement `tokenops demo` CLI seeder",
+      "description": "Add internal/cli demo subcommand. Seeds 7 days of synthetic events via existing pkg/eventschema + internal/storage/sqlite writer: ~50 requests/day across 3 models (claude-opus-4-7, claude-sonnet-4-6, gpt-4o), 2 providers, 4 workflow_ids, 3 agent_ids, realistic token + cost values. Includes a few budget.exceeded + optimization.applied events to populate scorecard. Flags: --days N (default 7), --reset to clear before seeding, --dry-run. Acceptance: after init+demo, tokenops_spend_summary returns nonzero, tokenops_top_consumers populated, tokenops_forecast has \u003e=2 daily buckets, tokenops_scorecard reflects real data not synthetic defaults.",
+      "priority": "high",
+      "estimate": "5h",
+      "depends_on": [
+        "task-fra-init-command"
+      ],
+      "feature_id": "first-run-activation-flow",
+      "source": {}
     },
     {
-      "id": "task-forecasting-governance",
-      "title": "Implement Forecasting and Governance",
-      "description": "Implement the feature: Forecasting and Governance. Weekly limit tracking budget alerts usage forecasting anomaly detection.",
+      "id": "task-fra-docs-quickstart",
+      "title": "Update README + docs quickstart for init/demo",
+      "description": "README + docs/operator-golden-path.md: replace manual config instructions with 3-command quickstart (install → tokenops init → tokenops demo → tokenops status). Reference blockers[] + next_actions[]. Add troubleshooting subsection pointing at structured errors. Acceptance: README first-run section reaches first scorecard within 3 commands; smoke-test via shell in CI optional.",
       "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "forecasting-governance"
-    },
-    {
-      "id": "task-integrations",
-      "title": "Implement Client Integrations",
-      "description": "Implement the feature: Client Integrations. First-party integrations across CLI ecosystem IDEs SDK ecosystem.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "integrations"
-    },
-    {
-      "id": "task-cli",
-      "title": "Implement TokenOps CLI",
-      "description": "Implement the feature: TokenOps CLI. Command-line interface for daemon management replay optimization analysis status coaching.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "cli"
-    },
-    {
-      "id": "task-dashboard",
-      "title": "Implement Dashboard",
-      "description": "Implement the feature: Dashboard. Vue web dashboard for live token usage spend attribution forecasts agent analytics optimization opportunities.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "dashboard"
-    },
-    {
-      "id": "task-data-telemetry",
-      "title": "Implement Data Model and Telemetry",
-      "description": "Implement the feature: Data Model and Telemetry. Event schema for prompts workflows optimizations coaching. Local-first with optional cloud emission. OpenTelemetry compatible.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "data-telemetry"
-    },
-    {
-      "id": "task-security-privacy",
-      "title": "Implement Security and Privacy",
-      "description": "Implement the feature: Security and Privacy. Local-first self-hostable privacy-preserving. Opt-in cloud telemetry. Air-gapped deployment supported.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "security-privacy"
-    },
-    {
-      "id": "task-operator-golden-path-+-wedge-kpi",
-      "title": "Implement Operator Golden Path + Wedge KPI",
-      "description": "Implement the feature: Operator Golden Path + Wedge KPI. Add a clear operator-first onboarding path that proves value quickly: a 5-minute golden path from install to first measurable token insight, with explicit expected output and a wedge KPI definition in docs.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "operator-golden-path-+-wedge-kpi"
+      "estimate": "1h",
+      "depends_on": [
+        "task-fra-demo-command",
+        "task-fra-disabled-error-contract"
+      ],
+      "feature_id": "first-run-activation-flow",
+      "source": {}
     },
     {
       "id": "task-branch-protection-compliance-guardrail",
@@ -108,234 +66,8 @@
       "priority": "medium",
       "estimate": "",
       "depends_on": [],
-      "feature_id": "branch-protection-compliance-guardrail"
-    },
-    {
-      "id": "task-security-finding-signal-governance",
-      "title": "Implement Security Finding Signal Governance",
-      "description": "Implement the feature: Security Finding Signal Governance. Harden nox signal quality by formalizing a false-positive governance policy: classify scanner findings (real issue vs acceptable pattern), keep scoped excludes minimal, and require documented rationale + periodic review for every suppression path.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "security-finding-signal-governance"
-    },
-    {
-      "id": "task-optimization-quality-evals-framework",
-      "title": "Implement Optimization Quality Evals Framework",
-      "description": "Implement the feature: Optimization Quality Evals Framework. Implement AI optimization evaluation harness with offline replay datasets and quality regression gates. Track task-success, regenerate rate, estimated token savings, and quality drift before enabling broader optimization defaults.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "optimization-quality-evals-framework"
-    },
-    {
-      "id": "task-operator-wedge-kpi-scorecard",
-      "title": "Implement Operator Wedge KPI Scorecard",
-      "description": "Implement the feature: Operator Wedge KPI Scorecard. Define a product wedge scorecard tied to operator outcomes: first-value time, token efficiency uplift, and spend attribution completeness. Publish metric definitions, baseline capture workflow, and rollout thresholds in docs + CLI output.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "operator-wedge-kpi-scorecard"
-    },
-    {
-      "id": "task-telemetry-contract-and-lineage-control",
-      "title": "Implement Telemetry Contract and Lineage Control",
-      "description": "Implement the feature: Telemetry Contract and Lineage Control. Add explicit data-contract and lineage docs for key event fields used across proxy, storage, OTLP, and dashboard. Include schema change policy, compatibility tests, and owner map for each telemetry contract.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "telemetry-contract-and-lineage-control"
-    },
-    {
-      "id": "task-risk-based-test-coverage-uplift",
-      "title": "Implement Risk-Based Test Coverage Uplift",
-      "description": "Implement the feature: Risk-Based Test Coverage Uplift. Introduce repository-level quality debt dashboard for low-coverage/high-risk packages (e.g., daemon entrypoints and integration surfaces). Add targeted tests and risk-ranked coverage goals rather than blanket percentage targets.",
-      "priority": "medium",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "risk-based-test-coverage-uplift"
-    },
-    {
-      "id": "proxy-bench",
-      "title": "Proxy overhead benchmark",
-      "description": "Benchmark harness for typical request mix. Validate sub-50ms p99. CI regression gate.",
-      "priority": "high",
-      "estimate": "4h",
-      "depends_on": [
-        "proxy-events"
-      ],
-      "feature_id": "tokenops-proxy"
-    },
-    {
-      "id": "openai-agents-mw",
-      "title": "OpenAI Agents SDK middleware",
-      "description": "Middleware integrating Agents SDK with TokenOps proxy and event emission.",
-      "priority": "medium",
-      "estimate": "4h",
-      "depends_on": [
-        "sdk-shim-openai"
-      ],
-      "feature_id": "integrations"
-    },
-    {
-      "id": "audit-log",
-      "title": "Audit log of TokenOps actions",
-      "description": "Append-only audit log for config changes, optimization accepts, telemetry toggles.",
-      "priority": "medium",
-      "estimate": "3h",
-      "depends_on": [
-        "sqlite-store"
-      ],
-      "feature_id": "security-privacy"
-    },
-    {
-      "id": "dashboard-forecast",
-      "title": "Spend forecast charts",
-      "description": "Forecast chart with confidence bands. Budget overlay. Anomaly markers.",
-      "priority": "medium",
-      "estimate": "4h",
-      "depends_on": [
-        "dashboard-skeleton",
-        "forecasting-core",
-        "budget-alerts"
-      ],
-      "feature_id": "dashboard"
-    },
-    {
-      "id": "dashboard-burn-graph",
-      "title": "Live burn graph",
-      "description": "Real-time token consumption chart. WebSocket/SSE. Filters per provider/model/workflow.",
-      "priority": "high",
-      "estimate": "5h",
-      "depends_on": [
-        "dashboard-skeleton"
-      ],
-      "feature_id": "dashboard"
-    },
-    {
-      "id": "workflow-trace",
-      "title": "Workflow trace reconstruction",
-      "description": "Reconstruct multi-step workflow from prompt events. Context growth tracking.",
-      "priority": "high",
-      "estimate": "5h",
-      "depends_on": [
-        "analytics-aggregator"
-      ],
-      "feature_id": "observability-platform"
-    },
-    {
-      "id": "sdk-shim-gemini",
-      "title": "Gemini SDK base-URL shim",
-      "description": "Gemini API base URL override. Streaming + non-streaming. SDK docs.",
-      "priority": "medium",
-      "estimate": "3h",
-      "depends_on": [
-        "proxy-providers",
-        "proxy-tokenizer"
-      ],
-      "feature_id": "integrations"
-    },
-    {
-      "id": "integ-codex-cli",
-      "title": "Codex CLI integration",
-      "description": "Codex CLI env setup. Smoke test.",
-      "priority": "medium",
-      "estimate": "2h",
-      "depends_on": [
-        "sdk-shim-openai"
-      ],
-      "feature_id": "integrations"
-    },
-    {
-      "id": "local-model-integ",
-      "title": "Local model integration via Ollama",
-      "description": "Pluggable local model backend for coaching. Default Ollama; OpenAI-compatible local servers also supported.",
-      "priority": "medium",
-      "estimate": "5h",
-      "depends_on": [
-        "async-pipeline"
-      ],
-      "feature_id": "coaching-engine"
-    },
-    {
-      "id": "async-pipeline",
-      "title": "Async coaching batch pipeline",
-      "description": "Queue expensive sessions for off-peak coaching. Concurrency and cost budget config.",
-      "priority": "medium",
-      "estimate": "5h",
-      "depends_on": [
-        "replay-engine"
-      ],
-      "feature_id": "coaching-engine"
-    },
-    {
-      "id": "retention-config",
-      "title": "Data retention configuration",
-      "description": "Configurable retention windows per event type. Background pruning job.",
-      "priority": "medium",
-      "estimate": "3h",
-      "depends_on": [
-        "sqlite-store"
-      ],
-      "feature_id": "security-privacy"
-    },
-    {
-      "id": "event-schema",
-      "title": "Define core event schema",
-      "description": "Prompt/Workflow/Optimization/Coaching event types as Go structs and Protobuf. OpenTelemetry-compatible attributes. Versioning policy.",
-      "priority": "high",
-      "estimate": "4h",
-      "depends_on": [
-        "repo-bootstrap"
-      ],
-      "feature_id": "data-telemetry"
-    },
-    {
-      "id": "dashboard-auth",
-      "title": "Dashboard auth for self-hosted",
-      "description": "Local auth (admin password or token). Optional OIDC stub. Session management.",
-      "priority": "high",
-      "estimate": "4h",
-      "depends_on": [
-        "dashboard-skeleton"
-      ],
-      "feature_id": "dashboard"
-    },
-    {
-      "id": "docs-site",
-      "title": "Docs site and integration guides",
-      "description": "VitePress or mkdocs site. Quickstart, integration guides, architecture overview, runbook.",
-      "priority": "high",
-      "estimate": "6h",
-      "depends_on": [
-        "cli-skeleton",
-        "sdk-shim-openai",
-        "sdk-shim-anthropic",
-        "sdk-shim-gemini"
-      ],
-      "feature_id": "integrations"
-    },
-    {
-      "id": "redaction",
-      "title": "Prompt redaction and secret detection",
-      "description": "Pattern + entropy-based secret detection. Redaction layer applied before non-local emission. Configurable rules.",
-      "priority": "high",
-      "estimate": "6h",
-      "depends_on": [
-        "event-schema"
-      ],
-      "feature_id": "security-privacy"
-    },
-    {
-      "id": "opt-quality-gate",
-      "title": "Quality preservation gate",
-      "description": "Refuse optimization if predicted quality drop exceeds threshold. Lightweight scoring.",
-      "priority": "medium",
-      "estimate": "4h",
-      "depends_on": [
-        "opt-engine-core"
-      ],
-      "feature_id": "optimization-engine"
+      "feature_id": "branch-protection-compliance-guardrail",
+      "source": {}
     },
     {
       "id": "forecasting-core",
@@ -346,43 +78,8 @@
       "depends_on": [
         "analytics-aggregator"
       ],
-      "feature_id": "forecasting-governance"
-    },
-    {
-      "id": "opt-router",
-      "title": "Adaptive model routing",
-      "description": "Cost/latency/quality-aware routing. Configurable policy. Fallback chains. Routing decisions emitted.",
-      "priority": "medium",
-      "estimate": "6h",
-      "depends_on": [
-        "opt-engine-core",
-        "proxy-providers"
-      ],
-      "feature_id": "optimization-engine"
-    },
-    {
-      "id": "dashboard-timeline",
-      "title": "Workflow timeline view",
-      "description": "Per-workflow step-by-step timeline. Context growth viz. Optimizations applied.",
-      "priority": "medium",
-      "estimate": "5h",
-      "depends_on": [
-        "dashboard-skeleton",
-        "workflow-trace"
-      ],
-      "feature_id": "dashboard"
-    },
-    {
-      "id": "waste-detector",
-      "title": "Waste pattern detector",
-      "description": "Detect duplicate context, oversized retrieval, redundant system prompts, recursive agent loops.",
-      "priority": "high",
-      "estimate": "6h",
-      "depends_on": [
-        "analytics-aggregator",
-        "workflow-trace"
-      ],
-      "feature_id": "coaching-engine"
+      "feature_id": "forecasting-governance",
+      "source": {}
     },
     {
       "id": "proxy-tokenizer",
@@ -393,112 +90,8 @@
       "depends_on": [
         "proxy-providers"
       ],
-      "feature_id": "tokenops-proxy"
-    },
-    {
-      "id": "opt-context-trim",
-      "title": "Context window trimming",
-      "description": "Configurable retention policies (system always, last N turns, summarize older).",
-      "priority": "medium",
-      "estimate": "5h",
-      "depends_on": [
-        "opt-engine-core"
-      ],
-      "feature_id": "optimization-engine"
-    },
-    {
-      "id": "sdk-shim-anthropic",
-      "title": "Anthropic SDK base-URL shim",
-      "description": "ANTHROPIC_BASE_URL override. Streaming validation. Python + Node SDK docs.",
-      "priority": "high",
-      "estimate": "3h",
-      "depends_on": [
-        "proxy-providers",
-        "proxy-tokenizer",
-        "proxy-streaming"
-      ],
-      "feature_id": "integrations"
-    },
-    {
-      "id": "dashboard-opt-list",
-      "title": "Optimization opportunities list",
-      "description": "List with savings estimate, accept/reject, one-click apply where safe.",
-      "priority": "medium",
-      "estimate": "5h",
-      "depends_on": [
-        "dashboard-skeleton",
-        "opt-engine-core"
-      ],
-      "feature_id": "dashboard"
-    },
-    {
-      "id": "sqlite-store",
-      "title": "SQLite local event store",
-      "description": "Local-first event persistence with migrations, batched writes, indices for workflow/agent/model queries.",
-      "priority": "high",
-      "estimate": "6h",
-      "depends_on": [
-        "event-schema"
-      ],
-      "feature_id": "data-telemetry"
-    },
-    {
-      "id": "proxy-streaming",
-      "title": "SSE streaming passthrough",
-      "description": "Stream upstream SSE without buffering. Token counting on the fly. Backpressure and cancel propagation.",
-      "priority": "high",
-      "estimate": "5h",
-      "depends_on": [
-        "proxy-providers"
-      ],
-      "feature_id": "tokenops-proxy"
-    },
-    {
-      "id": "analytics-aggregator",
-      "title": "Per-agent/model/workflow aggregation",
-      "description": "Rollup queries over event store. Time-bucketed aggregates. Streaming updates for live views.",
-      "priority": "high",
-      "estimate": "6h",
-      "depends_on": [
-        "sqlite-store",
-        "spend-engine"
-      ],
-      "feature_id": "observability-platform"
-    },
-    {
-      "id": "efficiency-score",
-      "title": "Efficiency scoring algorithm",
-      "description": "Score per workflow/agent/user. Combines waste signals. Progression over time.",
-      "priority": "medium",
-      "estimate": "5h",
-      "depends_on": [
-        "analytics-aggregator"
-      ],
-      "feature_id": "observability-platform"
-    },
-    {
-      "id": "proxy-skeleton",
-      "title": "Proxy daemon skeleton",
-      "description": "HTTP server, config loading, structured logging, graceful shutdown, health endpoint, lifecycle commands.",
-      "priority": "high",
-      "estimate": "6h",
-      "depends_on": [
-        "repo-bootstrap"
-      ],
-      "feature_id": "tokenops-proxy"
-    },
-    {
-      "id": "mcp-server",
-      "title": "MCP server for TokenOps queries",
-      "description": "MCP server exposing spend, forecast, replay, optimization queries.",
-      "priority": "medium",
-      "estimate": "5h",
-      "depends_on": [
-        "analytics-aggregator",
-        "forecasting-core",
-        "replay-engine"
-      ],
-      "feature_id": "integrations"
+      "feature_id": "tokenops-proxy",
+      "source": {}
     },
     {
       "id": "proxy-tls",
@@ -509,355 +102,7 @@
       "depends_on": [
         "proxy-skeleton"
       ],
-      "feature_id": "tokenops-proxy"
-    },
-    {
-      "id": "opt-engine-core",
-      "title": "Optimization engine core",
-      "description": "Pluggable optimizer pipeline. Modes passive/interactive/replay. Latency budget enforcement.",
-      "priority": "high",
-      "estimate": "5h",
-      "depends_on": [
-        "proxy-providers",
-        "event-schema"
-      ],
-      "feature_id": "optimization-engine"
-    },
-    {
-      "id": "opt-retrieval-prune",
-      "title": "Retrieval chunk pruning",
-      "description": "Detect oversized retrieval contexts, prune by relevance score.",
-      "priority": "high",
-      "estimate": "5h",
-      "depends_on": [
-        "opt-engine-core"
-      ],
-      "feature_id": "optimization-engine"
-    },
-    {
-      "id": "dashboard-skeleton",
-      "title": "Vue dashboard scaffold",
-      "description": "Vue 3 + Vite app, build, dev server, routing, layout, design tokens. API client for proxy daemon.",
-      "priority": "high",
-      "estimate": "5h",
-      "depends_on": [
-        "analytics-aggregator"
-      ],
-      "feature_id": "dashboard"
-    },
-    {
-      "id": "replay-engine",
-      "title": "Session replay engine",
-      "description": "Reload past session, run optimizer in replay mode, side-by-side original vs optimized. Token + spend savings.",
-      "priority": "high",
-      "estimate": "6h",
-      "depends_on": [
-        "sqlite-store",
-        "opt-engine-core"
-      ],
-      "feature_id": "coaching-engine"
-    },
-    {
-      "id": "proxy-cache",
-      "title": "Response and embedding cache",
-      "description": "Content-hash keyed cache with TTL. Eviction policy. Cache hit metrics emitted. Bypass headers.",
-      "priority": "medium",
-      "estimate": "5h",
-      "depends_on": [
-        "proxy-events"
-      ],
-      "feature_id": "tokenops-proxy"
-    },
-    {
-      "id": "proxy-providers",
-      "title": "Provider routing for OpenAI Anthropic Gemini",
-      "description": "Reverse proxy with per-provider upstream config, base-URL rewriting, auth passthrough, normalization to canonical form.",
-      "priority": "high",
-      "estimate": "6h",
-      "depends_on": [
-        "proxy-skeleton"
-      ],
-      "feature_id": "tokenops-proxy"
-    },
-    {
-      "id": "cli-skeleton",
-      "title": "CLI skeleton with cobra",
-      "description": "Cobra CLI. Daemon lifecycle. Config (file + env + flags). Cross-platform binaries.",
-      "priority": "high",
-      "estimate": "5h",
-      "depends_on": [
-        "proxy-skeleton"
-      ],
-      "feature_id": "cli"
-    },
-    {
-      "id": "cli-spend",
-      "title": "CLI spend/forecast/burn commands",
-      "description": "Current spend, burn rate, weekly forecast, top consumers. Terminal tables and sparklines.",
-      "priority": "medium",
-      "estimate": "4h",
-      "depends_on": [
-        "cli-skeleton",
-        "spend-engine",
-        "forecasting-core"
-      ],
-      "feature_id": "cli"
-    },
-    {
-      "id": "langchain-callback",
-      "title": "LangChain callback handler",
-      "description": "LangChain callback emitting TokenOps events. Python package. Examples + docs.",
-      "priority": "medium",
-      "estimate": "4h",
-      "depends_on": [
-        "sdk-shim-openai",
-        "sdk-shim-anthropic"
-      ],
-      "feature_id": "integrations"
-    },
-    {
-      "id": "integ-claude-code",
-      "title": "Claude Code CLI integration",
-      "description": "Document and script Claude Code env setup pointing at TokenOps proxy. End-to-end smoke test.",
-      "priority": "high",
-      "estimate": "2h",
-      "depends_on": [
-        "sdk-shim-anthropic"
-      ],
-      "feature_id": "integrations"
-    },
-    {
-      "id": "opt-dedupe",
-      "title": "Semantic deduplication",
-      "description": "Detect and merge repeated context across turns. Embedding-based similarity. Threshold config.",
-      "priority": "high",
-      "estimate": "6h",
-      "depends_on": [
-        "opt-engine-core"
-      ],
-      "feature_id": "optimization-engine"
-    },
-    {
-      "id": "otel-exporter",
-      "title": "OTLP telemetry exporter",
-      "description": "OpenTelemetry-compatible OTLP exporter for events and metrics. Opt-in. Respects redaction.",
-      "priority": "medium",
-      "estimate": "4h",
-      "depends_on": [
-        "proxy-events",
-        "redaction"
-      ],
-      "feature_id": "data-telemetry"
-    },
-    {
-      "id": "opt-prompt-compress",
-      "title": "Prompt compression optimizer",
-      "description": "Local-first compression algorithm (LLMLingua-style). Quality threshold check. Savings calculation.",
-      "priority": "high",
-      "estimate": "8h",
-      "depends_on": [
-        "opt-engine-core"
-      ],
-      "feature_id": "optimization-engine"
-    },
-    {
-      "id": "repo-bootstrap",
-      "title": "Bootstrap Go monorepo + tooling",
-      "description": "Init Go workspace with modules for proxy, cli, sdk, optimizer, observability, coaching. Makefile, golangci-lint, GitHub Actions CI. LICENSE Apache 2.0, README, CONTRIBUTING.",
-      "priority": "high",
-      "estimate": "4h",
-      "depends_on": [],
-      "feature_id": "tokenops-proxy"
-    },
-    {
-      "id": "dashboard-heatmap",
-      "title": "Token heatmap",
-      "description": "Heatmap by workflow/agent/model. Drilldown to timeline.",
-      "priority": "medium",
-      "estimate": "4h",
-      "depends_on": [
-        "dashboard-skeleton"
-      ],
-      "feature_id": "dashboard"
-    },
-    {
-      "id": "rbac-scaffold",
-      "title": "RBAC scaffold",
-      "description": "Role definitions admin/operator/viewer. API surface aware of roles. Enforcement post-MVP.",
-      "priority": "low",
-      "estimate": "4h",
-      "depends_on": [
-        "dashboard-auth"
-      ],
-      "feature_id": "security-privacy"
-    },
-    {
-      "id": "anomaly-detector",
-      "title": "Spike anomaly detection",
-      "description": "Detect anomalous token spikes per workflow/user. Statistical baseline + deviation thresholds.",
-      "priority": "medium",
-      "estimate": "5h",
-      "depends_on": [
-        "analytics-aggregator"
-      ],
-      "feature_id": "forecasting-governance"
-    },
-    {
-      "id": "proxy-events",
-      "title": "Event emission from proxy",
-      "description": "Wire interception to event bus. Emit Prompt and Workflow events with tokens, latency, provider, model, hash, context size. Async non-blocking.",
-      "priority": "high",
-      "estimate": "4h",
-      "depends_on": [
-        "proxy-tokenizer",
-        "event-schema",
-        "sqlite-store"
-      ],
-      "feature_id": "tokenops-proxy"
-    },
-    {
-      "id": "budget-alerts",
-      "title": "Budget thresholds and alerts",
-      "description": "Configurable daily/weekly budget limits. CLI + dashboard notifications. Forecast-based early warning.",
-      "priority": "high",
-      "estimate": "4h",
-      "depends_on": [
-        "forecasting-core",
-        "spend-engine"
-      ],
-      "feature_id": "forecasting-governance"
-    },
-    {
-      "id": "vscode-ext-mvp",
-      "title": "VSCode extension MVP",
-      "description": "Extension surfacing burn graph, optimization suggestions, replay link. Reuses dashboard data.",
-      "priority": "low",
-      "estimate": "8h",
-      "depends_on": [
-        "dashboard-burn-graph",
-        "cli-replay"
-      ],
-      "feature_id": "integrations"
-    },
-    {
-      "id": "clickhouse-schema",
-      "title": "ClickHouse schema and ingestion",
-      "description": "Schema for all event types. Direct insert or Kafka pipeline ingest. Materialized views.",
-      "priority": "medium",
-      "estimate": "6h",
-      "depends_on": [
-        "event-schema"
-      ],
-      "feature_id": "data-telemetry"
-    },
-    {
-      "id": "cli-replay",
-      "title": "CLI replay command",
-      "description": "tokenops replay session-id. Waste analysis, suggestions, savings, side-by-side diff.",
-      "priority": "high",
-      "estimate": "4h",
-      "depends_on": [
-        "cli-skeleton",
-        "replay-engine",
-        "waste-detector"
-      ],
-      "feature_id": "cli"
-    },
-    {
-      "id": "sdk-shim-openai",
-      "title": "OpenAI SDK base-URL shim",
-      "description": "Drop-in OPENAI_BASE_URL override. Python + Node SDK docs. Auth passthrough validated.",
-      "priority": "high",
-      "estimate": "3h",
-      "depends_on": [
-        "proxy-providers",
-        "proxy-tokenizer"
-      ],
-      "feature_id": "integrations"
-    },
-    {
-      "id": "integ-gemini-cli",
-      "title": "Gemini CLI integration",
-      "description": "Gemini CLI env setup. Smoke test.",
-      "priority": "medium",
-      "estimate": "2h",
-      "depends_on": [
-        "sdk-shim-gemini"
-      ],
-      "feature_id": "integrations"
-    },
-    {
-      "id": "spend-engine",
-      "title": "Pricing tables and spend computation",
-      "description": "Per-provider pricing config (input/output rates by model). Live spend per event. Currency support.",
-      "priority": "high",
-      "estimate": "4h",
-      "depends_on": [
-        "event-schema",
-        "sqlite-store"
-      ],
-      "feature_id": "observability-platform"
-    },
-    {
-      "id": "task-rule-intelligence",
-      "title": "Implement Rule Intelligence",
-      "description": "Implement the feature: Rule Intelligence. Operational rules (CLAUDE.md, AGENTS.md, Cursor, MCP policies) as first-class telemetry — ROI, conflicts, compression, dynamic injection, benchmarking. Issue #12.",
-      "priority": "high",
-      "estimate": "",
-      "depends_on": [],
-      "feature_id": "rule-intelligence",
-      "source": {}
-    },
-    {
-      "id": "rules-schema",
-      "title": "RuleEvent schema and source taxonomy",
-      "description": "Extend pkg/eventschema with RuleSourceEvent (ingest/parse) and RuleAnalysisEvent (per-rule ROI snapshot). Define RuleSource taxonomy: claude_md, agents_md, cursor, mcp_policy, repo_convention, custom. Bump SchemaVersion minor. Tests.",
-      "priority": "high",
-      "estimate": "4h",
-      "depends_on": [
-        "event-schema"
-      ],
-      "feature_id": "rule-intelligence",
-      "source": {}
-    },
-    {
-      "id": "rules-ingest",
-      "title": "Rule source ingestion + watcher",
-      "description": "internal/rules ingest CLAUDE.md, AGENTS.md, .cursor/rules, MCP policy files, repo conventions. Glob discovery + fs.Notify watcher. Normalize to RuleDocument with section anchors, frontmatter, checksums. Persist to sqlite.",
-      "priority": "high",
-      "estimate": "6h",
-      "depends_on": [
-        "rules-schema",
-        "sqlite-store"
-      ],
-      "feature_id": "rule-intelligence",
-      "source": {}
-    },
-    {
-      "id": "rules-analyzer",
-      "title": "Per-rule token cost + section breakdown",
-      "description": "Section-level token analysis: tokenize each rule block per provider, attribute tokens, expose density metrics. Emits RuleAnalysisEvent. CLI-friendly summaries.",
-      "priority": "high",
-      "estimate": "5h",
-      "depends_on": [
-        "rules-ingest",
-        "proxy-tokenizer"
-      ],
-      "feature_id": "rule-intelligence",
-      "source": {}
-    },
-    {
-      "id": "rules-roi",
-      "title": "Rule ROI engine",
-      "description": "Compute rule ROI by joining RuleSource exposure with downstream PromptEvent and OptimizationEvent outcomes: tokens saved, retries avoided, context reduction, latency impact, quality drift. Time-windowed; per-workflow.",
-      "priority": "high",
-      "estimate": "7h",
-      "depends_on": [
-        "rules-analyzer",
-        "analytics-aggregator",
-        "workflow-trace"
-      ],
-      "feature_id": "rule-intelligence",
+      "feature_id": "tokenops-proxy",
       "source": {}
     },
     {
@@ -868,47 +113,6 @@
       "estimate": "5h",
       "depends_on": [
         "rules-analyzer"
-      ],
-      "feature_id": "rule-intelligence",
-      "source": {}
-    },
-    {
-      "id": "rules-compress",
-      "title": "Rule corpus compression (distillation)",
-      "description": "Compress large rule corpora into distilled behavioral representation. Semantic dedup + section pruning + minimum-viable instruction set. Reuses opt-prompt-compress primitives. Quality gate against rule benchmark.",
-      "priority": "high",
-      "estimate": "8h",
-      "depends_on": [
-        "rules-analyzer",
-        "opt-prompt-compress",
-        "opt-dedupe"
-      ],
-      "feature_id": "rule-intelligence",
-      "source": {}
-    },
-    {
-      "id": "rules-router",
-      "title": "Dynamic rule injection / relevance routing",
-      "description": "Replace static rule blob injection with relevance-routed subset per request: pick rules by workflow, file globs, tool calls, repo. Latency-budgeted. Records selection rationale into RuleAnalysisEvent. Proxy hook + MCP exposure.",
-      "priority": "high",
-      "estimate": "7h",
-      "depends_on": [
-        "rules-compress",
-        "opt-engine-core",
-        "workflow-trace"
-      ],
-      "feature_id": "rule-intelligence",
-      "source": {}
-    },
-    {
-      "id": "rules-bench",
-      "title": "Rule benchmarking harness",
-      "description": "Offline harness benchmarking rule systems against replay datasets: task success, regen rate, tokens, quality drift. Plugs into optimization-quality-evals-framework. Compare profiles (e.g., Go backend, refactor, PR review).",
-      "priority": "medium",
-      "estimate": "6h",
-      "depends_on": [
-        "rules-roi",
-        "replay-engine"
       ],
       "feature_id": "rule-intelligence",
       "source": {}
@@ -931,18 +135,41 @@
       "source": {}
     },
     {
-      "id": "rules-mcp",
-      "title": "MCP server endpoints for rules",
-      "description": "Expose rules.analyze, rules.conflicts, rules.compress, rules.inject, rules.bench over MCP. Read-only; respects redaction.",
+      "id": "dashboard-opt-list",
+      "title": "Optimization opportunities list",
+      "description": "List with savings estimate, accept/reject, one-click apply where safe.",
       "priority": "medium",
-      "estimate": "4h",
+      "estimate": "5h",
       "depends_on": [
-        "mcp-server",
-        "rules-roi",
-        "rules-conflicts",
-        "rules-router"
+        "dashboard-skeleton",
+        "opt-engine-core"
       ],
-      "feature_id": "rule-intelligence",
+      "feature_id": "dashboard",
+      "source": {}
+    },
+    {
+      "id": "opt-engine-core",
+      "title": "Optimization engine core",
+      "description": "Pluggable optimizer pipeline. Modes passive/interactive/replay. Latency budget enforcement.",
+      "priority": "high",
+      "estimate": "5h",
+      "depends_on": [
+        "proxy-providers",
+        "event-schema"
+      ],
+      "feature_id": "optimization-engine",
+      "source": {}
+    },
+    {
+      "id": "opt-dedupe",
+      "title": "Semantic deduplication",
+      "description": "Detect and merge repeated context across turns. Embedding-based similarity. Threshold config.",
+      "priority": "high",
+      "estimate": "6h",
+      "depends_on": [
+        "opt-engine-core"
+      ],
+      "feature_id": "optimization-engine",
       "source": {}
     },
     {
@@ -961,6 +188,316 @@
       "source": {}
     },
     {
+      "id": "task-telemetry-contract-and-lineage-control",
+      "title": "Implement Telemetry Contract and Lineage Control",
+      "description": "Implement the feature: Telemetry Contract and Lineage Control. Add explicit data-contract and lineage docs for key event fields used across proxy, storage, OTLP, and dashboard. Include schema change policy, compatibility tests, and owner map for each telemetry contract.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "telemetry-contract-and-lineage-control",
+      "source": {}
+    },
+    {
+      "id": "dashboard-timeline",
+      "title": "Workflow timeline view",
+      "description": "Per-workflow step-by-step timeline. Context growth viz. Optimizations applied.",
+      "priority": "medium",
+      "estimate": "5h",
+      "depends_on": [
+        "dashboard-skeleton",
+        "workflow-trace"
+      ],
+      "feature_id": "dashboard",
+      "source": {}
+    },
+    {
+      "id": "proxy-skeleton",
+      "title": "Proxy daemon skeleton",
+      "description": "HTTP server, config loading, structured logging, graceful shutdown, health endpoint, lifecycle commands.",
+      "priority": "high",
+      "estimate": "6h",
+      "depends_on": [
+        "repo-bootstrap"
+      ],
+      "feature_id": "tokenops-proxy",
+      "source": {}
+    },
+    {
+      "id": "task-optimization-quality-evals-framework",
+      "title": "Implement Optimization Quality Evals Framework",
+      "description": "Implement the feature: Optimization Quality Evals Framework. Implement AI optimization evaluation harness with offline replay datasets and quality regression gates. Track task-success, regenerate rate, estimated token savings, and quality drift before enabling broader optimization defaults.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "optimization-quality-evals-framework",
+      "source": {}
+    },
+    {
+      "id": "event-schema",
+      "title": "Define core event schema",
+      "description": "Prompt/Workflow/Optimization/Coaching event types as Go structs and Protobuf. OpenTelemetry-compatible attributes. Versioning policy.",
+      "priority": "high",
+      "estimate": "4h",
+      "depends_on": [
+        "repo-bootstrap"
+      ],
+      "feature_id": "data-telemetry",
+      "source": {}
+    },
+    {
+      "id": "dashboard-skeleton",
+      "title": "Vue dashboard scaffold",
+      "description": "Vue 3 + Vite app, build, dev server, routing, layout, design tokens. API client for proxy daemon.",
+      "priority": "high",
+      "estimate": "5h",
+      "depends_on": [
+        "analytics-aggregator"
+      ],
+      "feature_id": "dashboard",
+      "source": {}
+    },
+    {
+      "id": "budget-alerts",
+      "title": "Budget thresholds and alerts",
+      "description": "Configurable daily/weekly budget limits. CLI + dashboard notifications. Forecast-based early warning.",
+      "priority": "high",
+      "estimate": "4h",
+      "depends_on": [
+        "forecasting-core",
+        "spend-engine"
+      ],
+      "feature_id": "forecasting-governance",
+      "source": {}
+    },
+    {
+      "id": "integ-gemini-cli",
+      "title": "Gemini CLI integration",
+      "description": "Gemini CLI env setup. Smoke test.",
+      "priority": "medium",
+      "estimate": "2h",
+      "depends_on": [
+        "sdk-shim-gemini"
+      ],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "retention-config",
+      "title": "Data retention configuration",
+      "description": "Configurable retention windows per event type. Background pruning job.",
+      "priority": "medium",
+      "estimate": "3h",
+      "depends_on": [
+        "sqlite-store"
+      ],
+      "feature_id": "security-privacy",
+      "source": {}
+    },
+    {
+      "id": "sdk-shim-anthropic",
+      "title": "Anthropic SDK base-URL shim",
+      "description": "ANTHROPIC_BASE_URL override. Streaming validation. Python + Node SDK docs.",
+      "priority": "high",
+      "estimate": "3h",
+      "depends_on": [
+        "proxy-providers",
+        "proxy-tokenizer",
+        "proxy-streaming"
+      ],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "replay-engine",
+      "title": "Session replay engine",
+      "description": "Reload past session, run optimizer in replay mode, side-by-side original vs optimized. Token + spend savings.",
+      "priority": "high",
+      "estimate": "6h",
+      "depends_on": [
+        "sqlite-store",
+        "opt-engine-core"
+      ],
+      "feature_id": "coaching-engine",
+      "source": {}
+    },
+    {
+      "id": "proxy-providers",
+      "title": "Provider routing for OpenAI Anthropic Gemini",
+      "description": "Reverse proxy with per-provider upstream config, base-URL rewriting, auth passthrough, normalization to canonical form.",
+      "priority": "high",
+      "estimate": "6h",
+      "depends_on": [
+        "proxy-skeleton"
+      ],
+      "feature_id": "tokenops-proxy",
+      "source": {}
+    },
+    {
+      "id": "otel-exporter",
+      "title": "OTLP telemetry exporter",
+      "description": "OpenTelemetry-compatible OTLP exporter for events and metrics. Opt-in. Respects redaction.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": [
+        "proxy-events",
+        "redaction"
+      ],
+      "feature_id": "data-telemetry",
+      "source": {}
+    },
+    {
+      "id": "sdk-shim-gemini",
+      "title": "Gemini SDK base-URL shim",
+      "description": "Gemini API base URL override. Streaming + non-streaming. SDK docs.",
+      "priority": "medium",
+      "estimate": "3h",
+      "depends_on": [
+        "proxy-providers",
+        "proxy-tokenizer"
+      ],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "integ-codex-cli",
+      "title": "Codex CLI integration",
+      "description": "Codex CLI env setup. Smoke test.",
+      "priority": "medium",
+      "estimate": "2h",
+      "depends_on": [
+        "sdk-shim-openai"
+      ],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "rbac-scaffold",
+      "title": "RBAC scaffold",
+      "description": "Role definitions admin/operator/viewer. API surface aware of roles. Enforcement post-MVP.",
+      "priority": "low",
+      "estimate": "4h",
+      "depends_on": [
+        "dashboard-auth"
+      ],
+      "feature_id": "security-privacy",
+      "source": {}
+    },
+    {
+      "id": "task-observability-platform",
+      "title": "Implement Observability Platform",
+      "description": "Implement the feature: Observability Platform. Token analytics spend tracking workflow attribution latency tracking efficiency scoring.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "observability-platform",
+      "source": {}
+    },
+    {
+      "id": "task-risk-based-test-coverage-uplift",
+      "title": "Implement Risk-Based Test Coverage Uplift",
+      "description": "Implement the feature: Risk-Based Test Coverage Uplift. Introduce repository-level quality debt dashboard for low-coverage/high-risk packages (e.g., daemon entrypoints and integration surfaces). Add targeted tests and risk-ranked coverage goals rather than blanket percentage targets.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "risk-based-test-coverage-uplift",
+      "source": {}
+    },
+    {
+      "id": "audit-log",
+      "title": "Audit log of TokenOps actions",
+      "description": "Append-only audit log for config changes, optimization accepts, telemetry toggles.",
+      "priority": "medium",
+      "estimate": "3h",
+      "depends_on": [
+        "sqlite-store"
+      ],
+      "feature_id": "security-privacy",
+      "source": {}
+    },
+    {
+      "id": "opt-context-trim",
+      "title": "Context window trimming",
+      "description": "Configurable retention policies (system always, last N turns, summarize older).",
+      "priority": "medium",
+      "estimate": "5h",
+      "depends_on": [
+        "opt-engine-core"
+      ],
+      "feature_id": "optimization-engine",
+      "source": {}
+    },
+    {
+      "id": "repo-bootstrap",
+      "title": "Bootstrap Go monorepo + tooling",
+      "description": "Init Go workspace with modules for proxy, cli, sdk, optimizer, observability, coaching. Makefile, golangci-lint, GitHub Actions CI. LICENSE Apache 2.0, README, CONTRIBUTING.",
+      "priority": "high",
+      "estimate": "4h",
+      "depends_on": [],
+      "feature_id": "tokenops-proxy",
+      "source": {}
+    },
+    {
+      "id": "dashboard-heatmap",
+      "title": "Token heatmap",
+      "description": "Heatmap by workflow/agent/model. Drilldown to timeline.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": [
+        "dashboard-skeleton"
+      ],
+      "feature_id": "dashboard",
+      "source": {}
+    },
+    {
+      "id": "task-security-privacy",
+      "title": "Implement Security and Privacy",
+      "description": "Implement the feature: Security and Privacy. Local-first self-hostable privacy-preserving. Opt-in cloud telemetry. Air-gapped deployment supported.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "security-privacy",
+      "source": {}
+    },
+    {
+      "id": "proxy-cache",
+      "title": "Response and embedding cache",
+      "description": "Content-hash keyed cache with TTL. Eviction policy. Cache hit metrics emitted. Bypass headers.",
+      "priority": "medium",
+      "estimate": "5h",
+      "depends_on": [
+        "proxy-events"
+      ],
+      "feature_id": "tokenops-proxy",
+      "source": {}
+    },
+    {
+      "id": "langchain-callback",
+      "title": "LangChain callback handler",
+      "description": "LangChain callback emitting TokenOps events. Python package. Examples + docs.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": [
+        "sdk-shim-openai",
+        "sdk-shim-anthropic"
+      ],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "rules-roi",
+      "title": "Rule ROI engine",
+      "description": "Compute rule ROI by joining RuleSource exposure with downstream PromptEvent and OptimizationEvent outcomes: tokens saved, retries avoided, context reduction, latency impact, quality drift. Time-windowed; per-workflow.",
+      "priority": "high",
+      "estimate": "7h",
+      "depends_on": [
+        "rules-analyzer",
+        "analytics-aggregator",
+        "workflow-trace"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
       "id": "rules-otlp",
       "title": "OTLP export of rule events",
       "description": "Wire RuleSourceEvent + RuleAnalysisEvent into otel-exporter. Redaction enforced. Cardinality controls per source.",
@@ -973,9 +510,602 @@
       ],
       "feature_id": "rule-intelligence",
       "source": {}
+    },
+    {
+      "id": "task-optimization-engine",
+      "title": "Implement Optimization Engine",
+      "description": "Implement the feature: Optimization Engine. Reduces token waste in real time via compression deduplication retrieval pruning context trimming adaptive routing.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "optimization-engine",
+      "source": {}
+    },
+    {
+      "id": "task-coaching-engine",
+      "title": "Implement Coaching Engine",
+      "description": "Implement the feature: Coaching Engine. Replays expensive sessions generates optimized alternatives teaches prompt efficiency. Local models async batch analysis.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "coaching-engine",
+      "source": {}
+    },
+    {
+      "id": "task-operator-wedge-kpi-scorecard",
+      "title": "Implement Operator Wedge KPI Scorecard",
+      "description": "Implement the feature: Operator Wedge KPI Scorecard. Define a product wedge scorecard tied to operator outcomes: first-value time, token efficiency uplift, and spend attribution completeness. Publish metric definitions, baseline capture workflow, and rollout thresholds in docs + CLI output.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "operator-wedge-kpi-scorecard",
+      "source": {}
+    },
+    {
+      "id": "dashboard-forecast",
+      "title": "Spend forecast charts",
+      "description": "Forecast chart with confidence bands. Budget overlay. Anomaly markers.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": [
+        "dashboard-skeleton",
+        "forecasting-core",
+        "budget-alerts"
+      ],
+      "feature_id": "dashboard",
+      "source": {}
+    },
+    {
+      "id": "docs-site",
+      "title": "Docs site and integration guides",
+      "description": "VitePress or mkdocs site. Quickstart, integration guides, architecture overview, runbook.",
+      "priority": "high",
+      "estimate": "6h",
+      "depends_on": [
+        "cli-skeleton",
+        "sdk-shim-openai",
+        "sdk-shim-anthropic",
+        "sdk-shim-gemini"
+      ],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "opt-quality-gate",
+      "title": "Quality preservation gate",
+      "description": "Refuse optimization if predicted quality drop exceeds threshold. Lightweight scoring.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": [
+        "opt-engine-core"
+      ],
+      "feature_id": "optimization-engine",
+      "source": {}
+    },
+    {
+      "id": "analytics-aggregator",
+      "title": "Per-agent/model/workflow aggregation",
+      "description": "Rollup queries over event store. Time-bucketed aggregates. Streaming updates for live views.",
+      "priority": "high",
+      "estimate": "6h",
+      "depends_on": [
+        "sqlite-store",
+        "spend-engine"
+      ],
+      "feature_id": "observability-platform",
+      "source": {}
+    },
+    {
+      "id": "efficiency-score",
+      "title": "Efficiency scoring algorithm",
+      "description": "Score per workflow/agent/user. Combines waste signals. Progression over time.",
+      "priority": "medium",
+      "estimate": "5h",
+      "depends_on": [
+        "analytics-aggregator"
+      ],
+      "feature_id": "observability-platform",
+      "source": {}
+    },
+    {
+      "id": "task-integrations",
+      "title": "Implement Client Integrations",
+      "description": "Implement the feature: Client Integrations. First-party integrations across CLI ecosystem IDEs SDK ecosystem.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "task-operator-golden-path-+-wedge-kpi",
+      "title": "Implement Operator Golden Path + Wedge KPI",
+      "description": "Implement the feature: Operator Golden Path + Wedge KPI. Add a clear operator-first onboarding path that proves value quickly: a 5-minute golden path from install to first measurable token insight, with explicit expected output and a wedge KPI definition in docs.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "operator-golden-path-+-wedge-kpi",
+      "source": {}
+    },
+    {
+      "id": "proxy-streaming",
+      "title": "SSE streaming passthrough",
+      "description": "Stream upstream SSE without buffering. Token counting on the fly. Backpressure and cancel propagation.",
+      "priority": "high",
+      "estimate": "5h",
+      "depends_on": [
+        "proxy-providers"
+      ],
+      "feature_id": "tokenops-proxy",
+      "source": {}
+    },
+    {
+      "id": "opt-retrieval-prune",
+      "title": "Retrieval chunk pruning",
+      "description": "Detect oversized retrieval contexts, prune by relevance score.",
+      "priority": "high",
+      "estimate": "5h",
+      "depends_on": [
+        "opt-engine-core"
+      ],
+      "feature_id": "optimization-engine",
+      "source": {}
+    },
+    {
+      "id": "integ-claude-code",
+      "title": "Claude Code CLI integration",
+      "description": "Document and script Claude Code env setup pointing at TokenOps proxy. End-to-end smoke test.",
+      "priority": "high",
+      "estimate": "2h",
+      "depends_on": [
+        "sdk-shim-anthropic"
+      ],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "proxy-events",
+      "title": "Event emission from proxy",
+      "description": "Wire interception to event bus. Emit Prompt and Workflow events with tokens, latency, provider, model, hash, context size. Async non-blocking.",
+      "priority": "high",
+      "estimate": "4h",
+      "depends_on": [
+        "proxy-tokenizer",
+        "event-schema",
+        "sqlite-store"
+      ],
+      "feature_id": "tokenops-proxy",
+      "source": {}
+    },
+    {
+      "id": "vscode-ext-mvp",
+      "title": "VSCode extension MVP",
+      "description": "Extension surfacing burn graph, optimization suggestions, replay link. Reuses dashboard data.",
+      "priority": "low",
+      "estimate": "8h",
+      "depends_on": [
+        "dashboard-burn-graph",
+        "cli-replay"
+      ],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "clickhouse-schema",
+      "title": "ClickHouse schema and ingestion",
+      "description": "Schema for all event types. Direct insert or Kafka pipeline ingest. Materialized views.",
+      "priority": "medium",
+      "estimate": "6h",
+      "depends_on": [
+        "event-schema"
+      ],
+      "feature_id": "data-telemetry",
+      "source": {}
+    },
+    {
+      "id": "task-cli",
+      "title": "Implement TokenOps CLI",
+      "description": "Implement the feature: TokenOps CLI. Command-line interface for daemon management replay optimization analysis status coaching.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "cli",
+      "source": {}
+    },
+    {
+      "id": "openai-agents-mw",
+      "title": "OpenAI Agents SDK middleware",
+      "description": "Middleware integrating Agents SDK with TokenOps proxy and event emission.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": [
+        "sdk-shim-openai"
+      ],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "redaction",
+      "title": "Prompt redaction and secret detection",
+      "description": "Pattern + entropy-based secret detection. Redaction layer applied before non-local emission. Configurable rules.",
+      "priority": "high",
+      "estimate": "6h",
+      "depends_on": [
+        "event-schema"
+      ],
+      "feature_id": "security-privacy",
+      "source": {}
+    },
+    {
+      "id": "sqlite-store",
+      "title": "SQLite local event store",
+      "description": "Local-first event persistence with migrations, batched writes, indices for workflow/agent/model queries.",
+      "priority": "high",
+      "estimate": "6h",
+      "depends_on": [
+        "event-schema"
+      ],
+      "feature_id": "data-telemetry",
+      "source": {}
+    },
+    {
+      "id": "cli-spend",
+      "title": "CLI spend/forecast/burn commands",
+      "description": "Current spend, burn rate, weekly forecast, top consumers. Terminal tables and sparklines.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": [
+        "cli-skeleton",
+        "spend-engine",
+        "forecasting-core"
+      ],
+      "feature_id": "cli",
+      "source": {}
+    },
+    {
+      "id": "anomaly-detector",
+      "title": "Spike anomaly detection",
+      "description": "Detect anomalous token spikes per workflow/user. Statistical baseline + deviation thresholds.",
+      "priority": "medium",
+      "estimate": "5h",
+      "depends_on": [
+        "analytics-aggregator"
+      ],
+      "feature_id": "forecasting-governance",
+      "source": {}
+    },
+    {
+      "id": "rules-ingest",
+      "title": "Rule source ingestion + watcher",
+      "description": "internal/rules ingest CLAUDE.md, AGENTS.md, .cursor/rules, MCP policy files, repo conventions. Glob discovery + fs.Notify watcher. Normalize to RuleDocument with section anchors, frontmatter, checksums. Persist to sqlite.",
+      "priority": "high",
+      "estimate": "6h",
+      "depends_on": [
+        "rules-schema",
+        "sqlite-store"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-compress",
+      "title": "Rule corpus compression (distillation)",
+      "description": "Compress large rule corpora into distilled behavioral representation. Semantic dedup + section pruning + minimum-viable instruction set. Reuses opt-prompt-compress primitives. Quality gate against rule benchmark.",
+      "priority": "high",
+      "estimate": "8h",
+      "depends_on": [
+        "rules-analyzer",
+        "opt-prompt-compress",
+        "opt-dedupe"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "task-dashboard",
+      "title": "Implement Dashboard",
+      "description": "Implement the feature: Dashboard. Vue web dashboard for live token usage spend attribution forecasts agent analytics optimization opportunities.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "dashboard",
+      "source": {}
+    },
+    {
+      "id": "waste-detector",
+      "title": "Waste pattern detector",
+      "description": "Detect duplicate context, oversized retrieval, redundant system prompts, recursive agent loops.",
+      "priority": "high",
+      "estimate": "6h",
+      "depends_on": [
+        "analytics-aggregator",
+        "workflow-trace"
+      ],
+      "feature_id": "coaching-engine",
+      "source": {}
+    },
+    {
+      "id": "rules-router",
+      "title": "Dynamic rule injection / relevance routing",
+      "description": "Replace static rule blob injection with relevance-routed subset per request: pick rules by workflow, file globs, tool calls, repo. Latency-budgeted. Records selection rationale into RuleAnalysisEvent. Proxy hook + MCP exposure.",
+      "priority": "high",
+      "estimate": "7h",
+      "depends_on": [
+        "rules-compress",
+        "opt-engine-core",
+        "workflow-trace"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "task-forecasting-governance",
+      "title": "Implement Forecasting and Governance",
+      "description": "Implement the feature: Forecasting and Governance. Weekly limit tracking budget alerts usage forecasting anomaly detection.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "forecasting-governance",
+      "source": {}
+    },
+    {
+      "id": "local-model-integ",
+      "title": "Local model integration via Ollama",
+      "description": "Pluggable local model backend for coaching. Default Ollama; OpenAI-compatible local servers also supported.",
+      "priority": "medium",
+      "estimate": "5h",
+      "depends_on": [
+        "async-pipeline"
+      ],
+      "feature_id": "coaching-engine",
+      "source": {}
+    },
+    {
+      "id": "async-pipeline",
+      "title": "Async coaching batch pipeline",
+      "description": "Queue expensive sessions for off-peak coaching. Concurrency and cost budget config.",
+      "priority": "medium",
+      "estimate": "5h",
+      "depends_on": [
+        "replay-engine"
+      ],
+      "feature_id": "coaching-engine",
+      "source": {}
+    },
+    {
+      "id": "cli-skeleton",
+      "title": "CLI skeleton with cobra",
+      "description": "Cobra CLI. Daemon lifecycle. Config (file + env + flags). Cross-platform binaries.",
+      "priority": "high",
+      "estimate": "5h",
+      "depends_on": [
+        "proxy-skeleton"
+      ],
+      "feature_id": "cli",
+      "source": {}
+    },
+    {
+      "id": "sdk-shim-openai",
+      "title": "OpenAI SDK base-URL shim",
+      "description": "Drop-in OPENAI_BASE_URL override. Python + Node SDK docs. Auth passthrough validated.",
+      "priority": "high",
+      "estimate": "3h",
+      "depends_on": [
+        "proxy-providers",
+        "proxy-tokenizer"
+      ],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "task-rule-intelligence",
+      "title": "Implement Rule Intelligence",
+      "description": "Implement the feature: Rule Intelligence. Operational rules (CLAUDE.md, AGENTS.md, Cursor, MCP policies) as first-class telemetry — ROI, conflicts, compression, dynamic injection, benchmarking. Issue #12.",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "task-tokenops-proxy",
+      "title": "Implement TokenOps Proxy",
+      "description": "Implement the feature: TokenOps Proxy. Local proxy intercepting requests between clients and LLM providers. Foundation for all other components.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "tokenops-proxy",
+      "source": {}
+    },
+    {
+      "id": "task-security-finding-signal-governance",
+      "title": "Implement Security Finding Signal Governance",
+      "description": "Implement the feature: Security Finding Signal Governance. Harden nox signal quality by formalizing a false-positive governance policy: classify scanner findings (real issue vs acceptable pattern), keep scoped excludes minimal, and require documented rationale + periodic review for every suppression path.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "security-finding-signal-governance",
+      "source": {}
+    },
+    {
+      "id": "workflow-trace",
+      "title": "Workflow trace reconstruction",
+      "description": "Reconstruct multi-step workflow from prompt events. Context growth tracking.",
+      "priority": "high",
+      "estimate": "5h",
+      "depends_on": [
+        "analytics-aggregator"
+      ],
+      "feature_id": "observability-platform",
+      "source": {}
+    },
+    {
+      "id": "opt-router",
+      "title": "Adaptive model routing",
+      "description": "Cost/latency/quality-aware routing. Configurable policy. Fallback chains. Routing decisions emitted.",
+      "priority": "medium",
+      "estimate": "6h",
+      "depends_on": [
+        "opt-engine-core",
+        "proxy-providers"
+      ],
+      "feature_id": "optimization-engine",
+      "source": {}
+    },
+    {
+      "id": "opt-prompt-compress",
+      "title": "Prompt compression optimizer",
+      "description": "Local-first compression algorithm (LLMLingua-style). Quality threshold check. Savings calculation.",
+      "priority": "high",
+      "estimate": "8h",
+      "depends_on": [
+        "opt-engine-core"
+      ],
+      "feature_id": "optimization-engine",
+      "source": {}
+    },
+    {
+      "id": "rules-analyzer",
+      "title": "Per-rule token cost + section breakdown",
+      "description": "Section-level token analysis: tokenize each rule block per provider, attribute tokens, expose density metrics. Emits RuleAnalysisEvent. CLI-friendly summaries.",
+      "priority": "high",
+      "estimate": "5h",
+      "depends_on": [
+        "rules-ingest",
+        "proxy-tokenizer"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "proxy-bench",
+      "title": "Proxy overhead benchmark",
+      "description": "Benchmark harness for typical request mix. Validate sub-50ms p99. CI regression gate.",
+      "priority": "high",
+      "estimate": "4h",
+      "depends_on": [
+        "proxy-events"
+      ],
+      "feature_id": "tokenops-proxy",
+      "source": {}
+    },
+    {
+      "id": "dashboard-auth",
+      "title": "Dashboard auth for self-hosted",
+      "description": "Local auth (admin password or token). Optional OIDC stub. Session management.",
+      "priority": "high",
+      "estimate": "4h",
+      "depends_on": [
+        "dashboard-skeleton"
+      ],
+      "feature_id": "dashboard",
+      "source": {}
+    },
+    {
+      "id": "rules-schema",
+      "title": "RuleEvent schema and source taxonomy",
+      "description": "Extend pkg/eventschema with RuleSourceEvent (ingest/parse) and RuleAnalysisEvent (per-rule ROI snapshot). Define RuleSource taxonomy: claude_md, agents_md, cursor, mcp_policy, repo_convention, custom. Bump SchemaVersion minor. Tests.",
+      "priority": "high",
+      "estimate": "4h",
+      "depends_on": [
+        "event-schema"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-bench",
+      "title": "Rule benchmarking harness",
+      "description": "Offline harness benchmarking rule systems against replay datasets: task success, regen rate, tokens, quality drift. Plugs into optimization-quality-evals-framework. Compare profiles (e.g., Go backend, refactor, PR review).",
+      "priority": "medium",
+      "estimate": "6h",
+      "depends_on": [
+        "rules-roi",
+        "replay-engine"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "dashboard-burn-graph",
+      "title": "Live burn graph",
+      "description": "Real-time token consumption chart. WebSocket/SSE. Filters per provider/model/workflow.",
+      "priority": "high",
+      "estimate": "5h",
+      "depends_on": [
+        "dashboard-skeleton"
+      ],
+      "feature_id": "dashboard",
+      "source": {}
+    },
+    {
+      "id": "mcp-server",
+      "title": "MCP server for TokenOps queries",
+      "description": "MCP server exposing spend, forecast, replay, optimization queries.",
+      "priority": "medium",
+      "estimate": "5h",
+      "depends_on": [
+        "analytics-aggregator",
+        "forecasting-core",
+        "replay-engine"
+      ],
+      "feature_id": "integrations",
+      "source": {}
+    },
+    {
+      "id": "cli-replay",
+      "title": "CLI replay command",
+      "description": "tokenops replay session-id. Waste analysis, suggestions, savings, side-by-side diff.",
+      "priority": "high",
+      "estimate": "4h",
+      "depends_on": [
+        "cli-skeleton",
+        "replay-engine",
+        "waste-detector"
+      ],
+      "feature_id": "cli",
+      "source": {}
+    },
+    {
+      "id": "spend-engine",
+      "title": "Pricing tables and spend computation",
+      "description": "Per-provider pricing config (input/output rates by model). Live spend per event. Currency support.",
+      "priority": "high",
+      "estimate": "4h",
+      "depends_on": [
+        "event-schema",
+        "sqlite-store"
+      ],
+      "feature_id": "observability-platform",
+      "source": {}
+    },
+    {
+      "id": "rules-mcp",
+      "title": "MCP server endpoints for rules",
+      "description": "Expose rules.analyze, rules.conflicts, rules.compress, rules.inject, rules.bench over MCP. Read-only; respects redaction.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": [
+        "mcp-server",
+        "rules-roi",
+        "rules-conflicts",
+        "rules-router"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "task-data-telemetry",
+      "title": "Implement Data Model and Telemetry",
+      "description": "Implement the feature: Data Model and Telemetry. Event schema for prompts workflows optimizations coaching. Local-first with optional cloud emission. OpenTelemetry compatible.",
+      "priority": "medium",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "data-telemetry",
+      "source": {}
     }
   ],
   "approval_status": "approved",
   "created_at": "2026-05-09T08:16:24.430801+02:00",
-  "updated_at": "2026-05-11T22:09:06.416915+02:00"
+  "updated_at": "2026-05-12T21:43:38.747347+02:00"
 }

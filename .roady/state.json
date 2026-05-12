@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 177,
+  "version": 189,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -783,6 +783,61 @@
       "completed_at": "2026-05-10T12:29:54.239808+02:00",
       "elapsed_minutes": 0
     },
+    "task-fra-demo-command": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "tokenops demo: deterministic seeder, 5 providers/models, 4 workflows, jitter, --reset/--dry-run; 4 tests in cli/demo_test.go"
+      ],
+      "started_at": "2026-05-12T21:52:08.498003+02:00",
+      "completed_at": "2026-05-12T21:54:18.398995+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-fra-disabled-error-contract": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "proxy/disabled.go stubs 503 {error,hint} for storage/rules-gated routes when subsystem off; covered by TestDisabledSubsystemReturnsStructuredError"
+      ],
+      "started_at": "2026-05-12T21:50:38.763965+02:00",
+      "completed_at": "2026-05-12T21:52:06.319145+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-fra-docs-quickstart": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "README Getting Started rewritten to 3-command quickstart, init/demo added to CLI table, troubleshooting table for blockers[]; full `go test ./...` green; smoke-tested binary end-to-end (init → demo → seeded 45 events)."
+      ],
+      "started_at": "2026-05-12T21:54:20.373094+02:00",
+      "completed_at": "2026-05-12T21:55:14.808655+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-fra-init-command": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "tokenops init: XDG-aware paths, idempotent, --force overwrite, --print-only dry-run; 4 tests in internal/cli/init_test.go"
+      ],
+      "started_at": "2026-05-12T21:49:12.452438+02:00",
+      "completed_at": "2026-05-12T21:50:36.691585+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-fra-status-blockers": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "status: blockers[]+next_actions[] wired; /readyz + tokenops_status surface them; unit tests in proxy/handlers_test.go + control_tools_test.go + config_test.go"
+      ],
+      "started_at": "2026-05-12T21:43:54.648512+02:00",
+      "completed_at": "2026-05-12T21:49:10.198849+02:00",
+      "elapsed_minutes": 5
+    },
     "task-integrations": {
       "status": "done",
       "path": "",
@@ -872,11 +927,15 @@
       "elapsed_minutes": 0
     },
     "task-security-finding-signal-governance": {
-      "status": "in_progress",
+      "status": "done",
       "path": "",
       "owner": "ai-agent",
+      "evidence": [
+        "Added _governance metadata (classification, last_reviewed, reviewed_by) to all 8 VEX statements in security/vex.json. New internal/secgov package enforces VEX metadata + .nox.yaml exclude comment governance via go test (classification ∈ allowed set; review age ≤120d). security/README.md documents the gate."
+      ],
       "started_at": "2026-05-10T13:04:58.793269+02:00",
-      "elapsed_minutes": 0
+      "completed_at": "2026-05-12T22:00:39.056625+02:00",
+      "elapsed_minutes": 3415
     },
     "task-security-privacy": {
       "status": "done",
@@ -945,5 +1004,5 @@
       "elapsed_minutes": 3
     }
   },
-  "updated_at": "2026-05-11T23:02:09.536833+02:00"
+  "updated_at": "2026-05-12T22:00:39.056626+02:00"
 }
