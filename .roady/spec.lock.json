@@ -7,103 +7,127 @@
       "id": "tokenops-proxy",
       "title": "TokenOps Proxy",
       "description": "Local proxy intercepting requests between clients and LLM providers. Foundation for all other components.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "optimization-engine",
       "title": "Optimization Engine",
       "description": "Reduces token waste in real time via compression deduplication retrieval pruning context trimming adaptive routing.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "observability-platform",
       "title": "Observability Platform",
       "description": "Token analytics spend tracking workflow attribution latency tracking efficiency scoring.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "coaching-engine",
       "title": "Coaching Engine",
       "description": "Replays expensive sessions generates optimized alternatives teaches prompt efficiency. Local models async batch analysis.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "forecasting-governance",
       "title": "Forecasting and Governance",
       "description": "Weekly limit tracking budget alerts usage forecasting anomaly detection.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "integrations",
       "title": "Client Integrations",
       "description": "First-party integrations across CLI ecosystem IDEs SDK ecosystem.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "cli",
       "title": "TokenOps CLI",
       "description": "Command-line interface for daemon management replay optimization analysis status coaching.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "dashboard",
       "title": "Dashboard",
       "description": "Vue web dashboard for live token usage spend attribution forecasts agent analytics optimization opportunities.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "data-telemetry",
       "title": "Data Model and Telemetry",
       "description": "Event schema for prompts workflows optimizations coaching. Local-first with optional cloud emission. OpenTelemetry compatible.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "security-privacy",
       "title": "Security and Privacy",
       "description": "Local-first self-hostable privacy-preserving. Opt-in cloud telemetry. Air-gapped deployment supported.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "operator-golden-path-+-wedge-kpi",
       "title": "Operator Golden Path + Wedge KPI",
       "description": "Add a clear operator-first onboarding path that proves value quickly: a 5-minute golden path from install to first measurable token insight, with explicit expected output and a wedge KPI definition in docs.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "branch-protection-compliance-guardrail",
       "title": "Branch Protection Compliance Guardrail",
       "description": "Define and enforce a strict PR-only workflow for protected branches. Add repository guardrails and team runbook so AI/CLI automation never pushes directly to main. Include branch-protection compliance checks in contribution workflow.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "security-finding-signal-governance",
       "title": "Security Finding Signal Governance",
       "description": "Harden nox signal quality by formalizing a false-positive governance policy: classify scanner findings (real issue vs acceptable pattern), keep scoped excludes minimal, and require documented rationale + periodic review for every suppression path.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "optimization-quality-evals-framework",
       "title": "Optimization Quality Evals Framework",
       "description": "Implement AI optimization evaluation harness with offline replay datasets and quality regression gates. Track task-success, regenerate rate, estimated token savings, and quality drift before enabling broader optimization defaults.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "operator-wedge-kpi-scorecard",
       "title": "Operator Wedge KPI Scorecard",
       "description": "Define a product wedge scorecard tied to operator outcomes: first-value time, token efficiency uplift, and spend attribution completeness. Publish metric definitions, baseline capture workflow, and rollout thresholds in docs + CLI output.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "telemetry-contract-and-lineage-control",
       "title": "Telemetry Contract and Lineage Control",
       "description": "Add explicit data-contract and lineage docs for key event fields used across proxy, storage, OTLP, and dashboard. Include schema change policy, compatibility tests, and owner map for each telemetry contract.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
     },
     {
       "id": "risk-based-test-coverage-uplift",
       "title": "Risk-Based Test Coverage Uplift",
       "description": "Introduce repository-level quality debt dashboard for low-coverage/high-risk packages (e.g., daemon entrypoints and integration surfaces). Add targeted tests and risk-ranked coverage goals rather than blanket percentage targets.",
-      "requirements": []
+      "requirements": [],
+      "source": {}
+    },
+    {
+      "id": "rule-intelligence",
+      "title": "Rule Intelligence",
+      "description": "Treat operational rule artifacts (CLAUDE.md, AGENTS.md, repo instructions, MCP policies, Cursor rules, coding conventions) as first-class telemetry. Provide a Rule Engine that ingests rule sources, analyzes ROI (tokens saved, retries avoided, context reduction, latency impact, quality drift), detects conflicts and redundancy, compresses rule corpora into distilled behavioral representations, and dynamically injects only the relevant subset per request/workflow. Includes benchmarking harness for coding/workflow rule systems. Surfaces via CLI (tokenops rules analyze|conflicts|compress|inject|bench), proxy hooks, MCP server, and dashboard. Local-first, respects redaction, OTLP-emittable. Issue #12.",
+      "requirements": null,
+      "source": {}
     }
   ],
   "constraints": [],
