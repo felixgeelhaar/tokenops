@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -54,8 +55,13 @@ func TestParityReplayRegisteredWhenDepsPresent(t *testing.T) {
 func TestParityRulesBenchHandler(t *testing.T) {
 	srv := newParityServer(t, ParityDeps{})
 	root := writeBenchCorpus(t)
+	// Marshal the path through json so Windows backslashes are escaped.
+	rootJSON, err := json.Marshal(root)
+	if err != nil {
+		t.Fatalf("marshal root: %v", err)
+	}
 	spec := `{
-"profiles":[{"name":"lean","root":"` + root + `","repo_id":"repo","min_score":0.0}],
+"profiles":[{"name":"lean","root":` + string(rootJSON) + `,"repo_id":"repo","min_score":0.0}],
 "scenarios":[{"name":"tdd","repo_id":"repo","keywords":["testing"],"exposure":{"requests":100,"output_tokens":5000,"baseline_output_tokens":6500,"retries":3}}]
 }`
 	out := execTool(t, srv, "tokenops_rules_bench", map[string]string{"spec_json": spec})
