@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 204,
+  "version": 217,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -992,6 +992,72 @@
       "completed_at": "2026-05-11T23:02:09.536831+02:00",
       "elapsed_minutes": 2
     },
+    "task-rlw-catalog-split": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Catalog: claude-max-5x (50 msgs/5h), claude-max-20x (200 msgs/5h), claude-pro (45 msgs/5h), gpt-plus (80 msgs/3h), gpt-team (120 msgs/3h). claude-code-* + copilot-* + cursor-* + gpt-pro left with no window cap (vendor publishes none)."
+      ],
+      "started_at": "2026-05-12T23:12:39.093914+02:00",
+      "completed_at": "2026-05-12T23:14:26.667089+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-rlw-cli-mcp-render": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "CLI + MCP feed WindowMessages from ConsumptionInWindow; text output adds \"window: 27/200 messages per 5h (13.5%) — resets in 5h0m0s\" line. Smoke-tested with claude-max-20x."
+      ],
+      "started_at": "2026-05-12T23:16:56.423484+02:00",
+      "completed_at": "2026-05-12T23:18:30.736065+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-rlw-docs-update": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "README + docs/plan-cost-model.md updated with split catalog (claude-max-5x/20x), window-cap column, example output. CHANGELOG entry under Unreleased."
+      ],
+      "started_at": "2026-05-12T23:18:32.938289+02:00",
+      "completed_at": "2026-05-12T23:20:04.937483+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-rlw-plan-schema": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Plan struct adds MessagesPerWindow + WindowUnit fields. Test asserts coherence (Window/Cap/Unit triple)."
+      ],
+      "started_at": "2026-05-12T23:11:53.777808+02:00",
+      "completed_at": "2026-05-12T23:12:36.632204+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-rlw-window-consumption": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "ConsumptionInWindow tallies plan-included messages + tokens over trailing window. Excludes metered/trial, wrong provider, expired events. 2 new tests."
+      ],
+      "started_at": "2026-05-12T23:14:29.707557+02:00",
+      "completed_at": "2026-05-12T23:15:26.675647+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-rlw-window-headroom-math": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "HeadroomReport gains Window* fields, ComputeHeadroom now blends monthly + window risk via worstRisk(). 3 new tests cover window-only, high-window, monthly+window cases."
+      ],
+      "started_at": "2026-05-12T23:15:28.892137+02:00",
+      "completed_at": "2026-05-12T23:16:54.230912+02:00",
+      "elapsed_minutes": 1
+    },
     "task-rule-intelligence": {
       "status": "done",
       "path": "",
@@ -1081,5 +1147,5 @@
       "elapsed_minutes": 3
     }
   },
-  "updated_at": "2026-05-12T22:57:58.76479+02:00"
+  "updated_at": "2026-05-12T23:20:04.937484+02:00"
 }
