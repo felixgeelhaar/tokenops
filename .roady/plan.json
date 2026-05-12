@@ -797,9 +797,185 @@
         "sqlite-store"
       ],
       "feature_id": "observability-platform"
+    },
+    {
+      "id": "task-rule-intelligence",
+      "title": "Implement Rule Intelligence",
+      "description": "Implement the feature: Rule Intelligence. Operational rules (CLAUDE.md, AGENTS.md, Cursor, MCP policies) as first-class telemetry — ROI, conflicts, compression, dynamic injection, benchmarking. Issue #12.",
+      "priority": "high",
+      "estimate": "",
+      "depends_on": [],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-schema",
+      "title": "RuleEvent schema and source taxonomy",
+      "description": "Extend pkg/eventschema with RuleSourceEvent (ingest/parse) and RuleAnalysisEvent (per-rule ROI snapshot). Define RuleSource taxonomy: claude_md, agents_md, cursor, mcp_policy, repo_convention, custom. Bump SchemaVersion minor. Tests.",
+      "priority": "high",
+      "estimate": "4h",
+      "depends_on": [
+        "event-schema"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-ingest",
+      "title": "Rule source ingestion + watcher",
+      "description": "internal/rules ingest CLAUDE.md, AGENTS.md, .cursor/rules, MCP policy files, repo conventions. Glob discovery + fs.Notify watcher. Normalize to RuleDocument with section anchors, frontmatter, checksums. Persist to sqlite.",
+      "priority": "high",
+      "estimate": "6h",
+      "depends_on": [
+        "rules-schema",
+        "sqlite-store"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-analyzer",
+      "title": "Per-rule token cost + section breakdown",
+      "description": "Section-level token analysis: tokenize each rule block per provider, attribute tokens, expose density metrics. Emits RuleAnalysisEvent. CLI-friendly summaries.",
+      "priority": "high",
+      "estimate": "5h",
+      "depends_on": [
+        "rules-ingest",
+        "proxy-tokenizer"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-roi",
+      "title": "Rule ROI engine",
+      "description": "Compute rule ROI by joining RuleSource exposure with downstream PromptEvent and OptimizationEvent outcomes: tokens saved, retries avoided, context reduction, latency impact, quality drift. Time-windowed; per-workflow.",
+      "priority": "high",
+      "estimate": "7h",
+      "depends_on": [
+        "rules-analyzer",
+        "analytics-aggregator",
+        "workflow-trace"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-conflicts",
+      "title": "Rule conflict and redundancy detector",
+      "description": "Detect conflicting operational guidance (e.g., be concise vs explain thoroughly), duplicated instructions across rule sources, drift between AGENTS.md and CLAUDE.md. Output structured findings with rationale.",
+      "priority": "medium",
+      "estimate": "5h",
+      "depends_on": [
+        "rules-analyzer"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-compress",
+      "title": "Rule corpus compression (distillation)",
+      "description": "Compress large rule corpora into distilled behavioral representation. Semantic dedup + section pruning + minimum-viable instruction set. Reuses opt-prompt-compress primitives. Quality gate against rule benchmark.",
+      "priority": "high",
+      "estimate": "8h",
+      "depends_on": [
+        "rules-analyzer",
+        "opt-prompt-compress",
+        "opt-dedupe"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-router",
+      "title": "Dynamic rule injection / relevance routing",
+      "description": "Replace static rule blob injection with relevance-routed subset per request: pick rules by workflow, file globs, tool calls, repo. Latency-budgeted. Records selection rationale into RuleAnalysisEvent. Proxy hook + MCP exposure.",
+      "priority": "high",
+      "estimate": "7h",
+      "depends_on": [
+        "rules-compress",
+        "opt-engine-core",
+        "workflow-trace"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-bench",
+      "title": "Rule benchmarking harness",
+      "description": "Offline harness benchmarking rule systems against replay datasets: task success, regen rate, tokens, quality drift. Plugs into optimization-quality-evals-framework. Compare profiles (e.g., Go backend, refactor, PR review).",
+      "priority": "medium",
+      "estimate": "6h",
+      "depends_on": [
+        "rules-roi",
+        "replay-engine"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-cli",
+      "title": "CLI: tokenops rules analyze|conflicts|compress|inject|bench",
+      "description": "Cobra subcommand tree under tokenops rules. Renders ROI, conflicts, compression diff, dynamic inject preview, benchmark results.",
+      "priority": "high",
+      "estimate": "5h",
+      "depends_on": [
+        "cli-skeleton",
+        "rules-analyzer",
+        "rules-conflicts",
+        "rules-compress",
+        "rules-router",
+        "rules-bench"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-mcp",
+      "title": "MCP server endpoints for rules",
+      "description": "Expose rules.analyze, rules.conflicts, rules.compress, rules.inject, rules.bench over MCP. Read-only; respects redaction.",
+      "priority": "medium",
+      "estimate": "4h",
+      "depends_on": [
+        "mcp-server",
+        "rules-roi",
+        "rules-conflicts",
+        "rules-router"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-dashboard",
+      "title": "Rule intelligence dashboard panels",
+      "description": "Vue panels: rule ROI leaderboard, conflict list, compression preview, dynamic injection routing log, benchmark trends.",
+      "priority": "medium",
+      "estimate": "5h",
+      "depends_on": [
+        "dashboard-skeleton",
+        "rules-roi",
+        "rules-conflicts",
+        "rules-bench"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
+    },
+    {
+      "id": "rules-otlp",
+      "title": "OTLP export of rule events",
+      "description": "Wire RuleSourceEvent + RuleAnalysisEvent into otel-exporter. Redaction enforced. Cardinality controls per source.",
+      "priority": "medium",
+      "estimate": "3h",
+      "depends_on": [
+        "rules-schema",
+        "otel-exporter",
+        "redaction"
+      ],
+      "feature_id": "rule-intelligence",
+      "source": {}
     }
   ],
   "approval_status": "approved",
   "created_at": "2026-05-09T08:16:24.430801+02:00",
-  "updated_at": "2026-05-10T12:55:44.507544+02:00"
+  "updated_at": "2026-05-11T22:09:06.416915+02:00"
 }

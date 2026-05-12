@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 143,
+  "version": 177,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -530,6 +530,138 @@
       "completed_at": "2026-05-10T09:21:13.201184+02:00",
       "elapsed_minutes": 1
     },
+    "rules-analyzer": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/rules: added Analyzer (NewAnalyzer + Analyze + AnalyzePath) that measures each RuleDocument under one or more provider tokenizers, returning AnalysisResult with per-document summaries (TotalTokens, sections, top-5 sections by token cost, TokensPerKChar density), the underlying RuleSourceEvents, and tokenizer-independent DuplicateGroups bucketed by section body hash. internal/cli: new `tokenops rules` command tree with `tokenops rules analyze --root --repo-id --provider {openai|anthropic|gemini} [--json]`. Text rendering shows the source table, top sections, and duplicate-body groups; JSON output emits Documents + DuplicateGroups for piping. Tests: in-memory FS analyze, JSON shape, provider validation. golangci-lint clean across rules/cli/eventschema/otlp/storage. go test ./... clean."
+      ],
+      "started_at": "2026-05-11T22:15:10.99936+02:00",
+      "completed_at": "2026-05-11T22:18:08.605526+02:00",
+      "elapsed_minutes": 2
+    },
+    "rules-bench": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/rules: added Benchmark, Profile (Name + Docs + RouterConfig), Scenario (Name + SelectionSignals + Exposure), ProfileScore, BenchmarkResult. NewBenchmark(roiCfg).Run(profiles, scenarios) runs Router for each profile-scenario, sets Exposure.RuleContextTokens from sel.TotalTokens, scores via ROIEngine, returns scoreboard sorted by scenario then ROI desc and Winners map (highest ROI per scenario, alphabetical tiebreak). internal/cli: new `tokenops rules bench --spec \u003cyaml|json\u003e` subcommand. benchSpec format covers profiles (name/root/repo_id/min_score/token_budget/include_global) and scenarios (name/repo_id/workflow/agent/files/tools/keywords + exposure {requests, output_tokens, baseline_output_tokens, retries}). parseBenchSpec tries JSON then YAML. Tests: lean-vs-bloat scoreboard sanity (lean wins under tight context cost), scenario-internal sort order desc by ROI, empty inputs safe, CLI YAML spec end-to-end. golangci-lint + go test ./... clean."
+      ],
+      "started_at": "2026-05-11T22:32:08.093158+02:00",
+      "completed_at": "2026-05-11T22:34:38.418252+02:00",
+      "elapsed_minutes": 2
+    },
+    "rules-cli": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/cli: full `tokenops rules` cobra subtree shipped — analyze (token cost + section breakdown + duplicate groups), conflicts (redundant/drift/anti-pattern with --json), compress (Jaccard near-dup pruning + quality gate + --emit-body), inject (Router dry-run with --workflow/--agent/--file/--tool/--keyword/--token-budget/--min-score/--latency-budget-ms/--include-global), bench (--spec YAML/JSON profile-vs-scenario scoreboard with Winners map). All subcommands provide both human-readable table output and --json structured output. Tests in internal/cli/rules_test.go cover each subcommand on a temp-dir corpus, JSON shapes, provider validation, scoreboard winner sanity. go test ./... + golangci-lint run ./... clean."
+      ],
+      "started_at": "2026-05-11T22:34:49.371557+02:00",
+      "completed_at": "2026-05-11T22:34:53.983688+02:00",
+      "elapsed_minutes": 0
+    },
+    "rules-compress": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/rules: added Compressor with CompressConfig (SimilarityThreshold 0.85, MinSectionTokens 24, ShingleSize 3, QualityFloor 0.6). Pipeline drops exact-duplicate sections (whitespace-normalised SHA-256 hash), prunes near-duplicates via word-trigram Jaccard, then compacts retained section bodies (whitespace + consecutive-line dedup, blank-line aware). CompressionResult carries per-section outcomes (Dropped/DroppedReason/DuplicateOf), corpus totals, QualityScore = compressed/original, and Accepted flag against quality floor. CompactedBody re-assembles the surviving corpus; AsAnalysisEvent emits a RuleAnalysisEvent with CompressedTokens. internal/cli: new `tokenops rules compress [--root --repo-id --similarity --quality-floor --emit-body --json]` subcommand renders per-doc original/compressed token totals + drop counts; --json emits compressView slice. Tests: exact-duplicate drop, near-duplicate drop via Jaccard, compactBody whitespace + dedup, compacted body round-trip, quality gate range, AnalysisEvent rendering, CLI JSON savings. golangci-lint + go test clean."
+      ],
+      "started_at": "2026-05-11T22:24:56.494238+02:00",
+      "completed_at": "2026-05-11T22:27:59.649001+02:00",
+      "elapsed_minutes": 3
+    },
+    "rules-conflicts": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/rules: added DetectConflicts producing three Finding kinds — redundant (identical section bodies), drift (same anchor across rule sources with diverging hashes), anti_pattern (within-section and cross-section competing-incentive phrase pairs). DefaultAntiPatterns seeds four pairs (concise_vs_verbose, tdd_vs_test_after, comments_required_vs_no_comments, ask_before_acting_vs_autonomous). Findings carry section IDs + trigger names but never raw body text. Finding.AsAnalysisEvent renders to RuleAnalysisEvent (ConflictsWith / RedundantWith) for telemetry. internal/cli: new `tokenops rules conflicts [--root --repo-id --json]` subcommand. Tests cover all three kinds (incl. body non-leakage), Finding -\u003e AnalysisEvent rendering, CLI drift detection, CLI JSON shape. golangci-lint clean, go test ./... clean."
+      ],
+      "started_at": "2026-05-11T22:19:20.224452+02:00",
+      "completed_at": "2026-05-11T22:21:51.816132+02:00",
+      "elapsed_minutes": 2
+    },
+    "rules-dashboard": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/proxy/rules_api.go: new RulesHandlers serving GET /api/rules/{analyze,conflicts,compress,inject}. Each request re-ingests the configured root so dashboard reflects disk edits without restart. Bodies never returned — only metrics, anchors, hashes, routing rationale. WithRules(h) Option threads through Server.rulesAPI and is registered in Start alongside analytics. internal/config: added RulesConfig {Enabled, Root, RepoID}. internal/daemon: wires proxy.NewRulesHandlers(cfg.Rules.Root|cwd, cfg.Rules.RepoID) when cfg.Rules.Enabled, logs activation. web/dashboard/src/api/client.ts: new types (RuleDocumentSummary, RuleSectionSummary, RuleFinding, RuleCompressResult, RuleSelection) + responses + api.rulesAnalyze/rulesConflicts/rulesCompress/rulesInject methods. web/dashboard/src/views/RulesView.vue: three-panel UI — KPI strip (sources/total tokens/conflicts), Token Cost Leaderboard table, Conflicts panel grouped by kind (redundant/drift/anti_pattern) with members + triggers, Compression Preview table with ratio + quality gate badge. Router entry at /rules + sidebar nav link. internal/proxy tests cover all four endpoints end-to-end via httptest; vue-tsc --noEmit clean; go test ./... + golangci-lint run ./... clean."
+      ],
+      "started_at": "2026-05-11T22:42:19.787045+02:00",
+      "completed_at": "2026-05-11T22:47:00.876064+02:00",
+      "elapsed_minutes": 4
+    },
+    "rules-ingest": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/rules: new package implementing rule artifact discovery + parsing. ClassifySource maps paths to RuleSource taxonomy (claude_md, agents_md, cursor_rules, mcp_policy, repo_convention). DefaultScope assigns repo/file_glob/tool scopes. ParseMarkdown splits docs by ATX headings with code-fence awareness and emits RuleBlocks anchored by heading path. Ingestor.Discover walks the FS (defaults to glob set: CLAUDE.md, AGENTS.md, .cursor/rules/**, *.mcp.{yaml,yml,json}, docs/conventions/*.md), skipping hidden/vendor trees, with overridable patterns and max-size cap. Ingestor.Snapshot returns parsed RuleDocuments. Tests cover classification, heading parsing (incl. fences), in-memory snapshot via testing/fstest, pattern matching (**, *), and the ToSourceEvent renderer (sha256 hashing, section breakdown, tokenizer label). All tests green."
+      ],
+      "started_at": "2026-05-11T22:12:29.909563+02:00",
+      "completed_at": "2026-05-11T22:15:08.704283+02:00",
+      "elapsed_minutes": 2
+    },
+    "rules-mcp": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/mcp: new rules_tools.go with RegisterRulesTools(s). Exposes four read-only tools mirroring the CLI surface: tokenops_rules_analyze, tokenops_rules_conflicts, tokenops_rules_compress, tokenops_rules_inject. Each handler is a thin wrapper that reuses internal/rules ingestor/router/compressor/analyzer code paths; raw rule bodies never leave the daemon — only metrics, hashes, anchors, and routing rationale. tokenops_rules_inject applies a 200ms latency budget by default. internal/cli/serve.go registers the new tools alongside the existing analytics surface. Tests cover registration (all four tools attached), CLI-equivalent JSON shapes for analyze/conflicts/compress/inject. go test ./... + golangci-lint clean."
+      ],
+      "started_at": "2026-05-11T22:34:56.030099+02:00",
+      "completed_at": "2026-05-11T22:36:51.715392+02:00",
+      "elapsed_minutes": 1
+    },
+    "rules-otlp": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/redaction: extended redactPayload switch to handle RuleSourceEvent + RuleAnalysisEvent; secrets in SourceID, Path, RepoID, Hash, Sections[].{ID,Anchor,Hash}, AnalysisEvent.WorkflowID/AgentID/ConflictsWith/RedundantWith now sanitized via redactInto. internal/otlp: existing exporter.envelopeToLogRecord already dispatches to ruleSourceAttributes + ruleAnalysisAttributes (added with rules-schema). End-to-end test TestExporterEmitsRuleEnvelopes asserts tokenops.rule.source_id/source/total_tokens/section_count/exposures/context_tokens/roi_score reach a fake collector. Existing redaction tests extended to cover both rule envelope kinds (sk-proj API key in Path, Bearer-like values in ConflictsWith). golangci-lint clean, go test ./... clean."
+      ],
+      "started_at": "2026-05-11T22:21:53.866154+02:00",
+      "completed_at": "2026-05-11T22:22:47.836073+02:00",
+      "elapsed_minutes": 0
+    },
+    "rules-roi": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/rules: added ROIEngine + Exposure + ROIConfig. NewROIEngine(cfg).Analyze(exposures) emits RuleAnalysisEvent per exposure with Exposures, ContextTokens, TokensSaved, RetriesAvoided, ContextReduction, LatencyImpactNS, QualityDelta, ROIScore. Heuristics: tokens_saved = max(baseline - observed, 0) + retries_avoided * savings_per_retry; retries_avoided = max(assumed_retry_rate*requests - observed_retries, 0); baseline falls back to OutputTokens * BaselineGrowthFactor when no explicit baseline available. ROIScore = (tokens_saved - context_tokens) / context_tokens, normalised for cross-rule comparison. Defaults: assumed retry 0.10, savings per retry 800, growth factor 1.08. Tests: positive ROI path, negative-savings clamp, baseline-growth fallback (decoupled retry term), zero-context safety, defaults applied. golangci-lint clean."
+      ],
+      "started_at": "2026-05-11T22:22:49.915815+02:00",
+      "completed_at": "2026-05-11T22:24:36.081009+02:00",
+      "elapsed_minutes": 1
+    },
+    "rules-router": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/rules: added Router + SelectionSignals + RouterConfig. Score-based admission with reasons: scope:global (+1.0 when IncludeGlobalScope and document scope is global), repo_match (+0.5), path:N (+1.0 via matchAnyGlob with extension heuristic for Cursor-style rule paths), tool:N (+1.0 per body/anchor hit), kw:N (+1.0 anchor / +0.5 body), workflow:N (+0.5 anchor match). MinScore admits; sorted score-desc + section-id tiebreak; TokenBudget caps total; LatencyBudget walks docs and trips Truncated when deadline passes (Now injectable for tests); records Considered/SkippedCount/BudgetHit/ElapsedNS. SelectionResult.AsAnalysisEvents renders selections as RuleAnalysisEvent stream with Exposures=1 and ROIScore=score. internal/cli: new `tokenops rules inject [--workflow --agent --file --tool --keyword --token-budget --min-score --latency-budget-ms --include-global --json]`. Tests cover keyword path, file-glob extension match, token budget overflow, global-scope floor, repo mismatch isolation, latency budget truncation via injected Now, AsAnalysisEvents round-trip. golangci-lint + go test ./... clean."
+      ],
+      "started_at": "2026-05-11T22:29:30.076036+02:00",
+      "completed_at": "2026-05-11T22:32:06.040052+02:00",
+      "elapsed_minutes": 2
+    },
+    "rules-schema": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "pkg/eventschema: added RuleSourceEvent + RuleAnalysisEvent payloads with RuleSource/RuleScope taxonomy and RuleSection struct. Added EventTypeRuleSource and EventTypeRuleAnalysis discriminators. Bumped SchemaVersion 1.0.0 -\u003e 1.1.0 (additive minor). Added tokenops.rule.* OTLP attribute keys (source_id, source, scope, path, repo_id, tokenizer, total_tokens, section_id, section_count, exposures, context_tokens, tokens_saved, retries_avoided, context_reduction, quality_delta, roi_score, compressed_tokens). Wired SQLite decoder + OTLP exporter (ruleSourceAttributes, ruleAnalysisAttributes, severityForType). Extended payload and contract tests. go test ./... clean."
+      ],
+      "started_at": "2026-05-11T22:09:18.29888+02:00",
+      "completed_at": "2026-05-11T22:12:27.983889+02:00",
+      "elapsed_minutes": 3
+    },
     "sdk-shim-anthropic": {
       "status": "done",
       "path": "",
@@ -685,9 +817,15 @@
       "elapsed_minutes": 0
     },
     "task-operator-wedge-kpi-scorecard": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/scorecard/compute.go: new Compute(ctx, store, since) derives the three wedge KPIs from the local sqlite event store. FVT = median first-prompt latency per session_id (or workflow_id when session missing), reported in seconds. TEU = sum(OptimizationEvent.EstimatedSavingsTokens) / sum(PromptEvent.InputTokens) * 100. SAC = % of PromptEvents carrying WorkflowID|AgentID|SessionID. LiveKPIs carries per-KPI Computed flag so callers can fall through to operator defaults rather than reporting misleading zeros. internal/cli/scorecard.go: scorecard subcommand now opens ~/.tokenops/events.db (overridable via --db), pulls live KPIs over --since-days (default 7), and applies any --fvt-seconds/--teu-pct/--sac-pct override; falls back to historical placeholders when the store is missing or empty. Tests cover FVT median per session (incl. duplicate-event suppression), TEU 20% case, SAC 75% case, and empty-store flag behavior. golangci-lint + go test ./... clean."
+      ],
+      "started_at": "2026-05-11T22:56:38.680507+02:00",
+      "completed_at": "2026-05-11T22:59:24.070245+02:00",
+      "elapsed_minutes": 2
     },
     "task-optimization-engine": {
       "status": "done",
@@ -701,13 +839,36 @@
       "elapsed_minutes": 0
     },
     "task-optimization-quality-evals-framework": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/eval: existing Suite/Case/Runner/PipelineBuilder/Report already covered offline replay datasets + per-optimizer stats. Added internal/eval/gate.go with Gate{MaxSuccessRateDropPct, MaxQualityDriftPct, MinTotalCases} and Gate.Evaluate(baseline, current). Violations cover under_covered (insufficient cases), success_rate_drop (absolute pp drop vs baseline), optimizer_disappeared (optimizer present in baseline but missing from current), quality_drift (per-optimizer AvgQuality regression beyond threshold). GateResult exposes Passed flag, Violations list, and Drift map per optimizer. Defaults: 5pp success drop, 10% quality drift, 1 min cases. internal/cli/eval.go: new `tokenops eval` cobra subcommand with --suites (glob, defaults to internal/eval/testdata/*.json), --baseline, --output (persist report as next baseline), --enforce (non-zero exit on violations), --max-success-drop-pct, --max-quality-drift-pct, --min-cases, --optimizer filter (repeatable), --json. Merges multiple suite reports via weighted averages on shared optimizers. Tests cover gate (stable / success-drop / quality regression / disappeared optimizer / under-covered / first-run-without-baseline) and CLI (bundled suite run + baseline regression enforcement). golangci-lint + go test ./... clean."
+      ],
+      "started_at": "2026-05-11T22:53:00.365623+02:00",
+      "completed_at": "2026-05-11T22:56:17.174516+02:00",
+      "elapsed_minutes": 3
     },
     "task-risk-based-test-coverage-uplift": {
-      "status": "pending",
+      "status": "done",
       "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/coverdebt: new package implementing the docs/coverage-debt.md scoring model. Risk buckets (Critical=10, High=7, Medium=4, Low=1) + PackagePolicy{Risk, Goal} + DefaultPolicies seeded with 18 TokenOps packages. ParseCoverProfile parses Go cover profile (mode: set/atomic/count format, file:start.col,end.col stmts count lines) and aggregates per-package Statements + CoveredStatements; Coverage.Pct returns percentage. Analyze applies policies to coverage rows, producing DebtRow per package (RiskScore = Impact * (1 - Coverage), Gap = Goal - Coverage clamped ≥0, GoalMet flag), Failed list, and OverallScore (weighted by risk). Unknown packages fall through to Medium/60 to surface new code. internal/cli/coverage_debt.go: new `tokenops coverage-debt --profile [--enforce --json]` subcommand. Tests cover parsing, goal-miss detection, weighted overall, unknown package default, risk label formatting, CLI JSON shape, CLI enforce-failure. golangci-lint + go test ./... clean (43 packages)."
+      ],
+      "started_at": "2026-05-11T22:59:39.760881+02:00",
+      "completed_at": "2026-05-11T23:02:09.536831+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-rule-intelligence": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Feature complete from issue #12 (Rule Intelligence) modulo dashboard panels (rules-dashboard tracked separately). Shipped subsystems: pkg/eventschema (RuleSourceEvent + RuleAnalysisEvent + RuleSource/RuleScope taxonomy + tokenops.rule.* OTLP attrs, schema 1.1.0); internal/rules (ingestor with glob + watcher-ready FS abstraction, Markdown parser with code-fence awareness, Analyzer with per-section breakdown + duplicate-hash groups, DetectConflicts surfacing redundant/drift/anti_pattern findings, Compressor with Jaccard near-duplicate pruning + quality gate, ROIEngine producing tokens_saved/retries_avoided/context_reduction/ROIScore, Router with budgeted dynamic selection + selection rationale, Benchmark scoreboard); internal/cli (full `tokenops rules analyze|conflicts|compress|inject|bench` tree with --json everywhere); internal/mcp (tokenops_rules_analyze|conflicts|compress|inject read-only tools); internal/redaction + internal/otlp wired for both rule payloads with end-to-end OTLP collector test. Smoke-tested end-to-end on synthetic corpora. Remaining roadmap items: rules-dashboard (Vue panels)."
+      ],
+      "started_at": "2026-05-11T22:36:54.490507+02:00",
+      "completed_at": "2026-05-11T22:36:58.611431+02:00",
       "elapsed_minutes": 0
     },
     "task-security-finding-signal-governance": {
@@ -729,9 +890,15 @@
       "elapsed_minutes": 0
     },
     "task-telemetry-contract-and-lineage-control": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "docs/telemetry-contracts.md extended: schema version reference bumped to 1.1.0; envelope Type enum lists rule_source + rule_analysis; Contract Owners table adds Rule Source + Rule Analysis (@tokenops/rules); Field-Level Lineage table adds RuleSourceEvent.{SourceID,Source,TotalTokens,Sections[].Hash} and RuleAnalysisEvent.{ROIScore,ConflictsWith,CompressedTokens}; new \"Rule Intelligence Flow\" ASCII pipeline diagram covering ingest → analyzer → conflicts → compress → roi → router with downstream consumers (CLI/HTTP/MCP/OTLP/SQLite); new §6 RuleSourceEvent contract (full field table + invariants — no raw body, stable SourceID, section ID format); new §7 RuleAnalysisEvent contract (window invariants, ROI normalization, conflict/redundancy semantics). pkg/eventschema/golden_test.go: new compatibility tests pinning the on-the-wire JSON for prompt + rule_source + rule_analysis envelopes, plus a SchemaVersion sentinel that flags policy-bypassing version bumps. Schema policy table already defines the bump rules; any rename / type change in the wire format now trips a golden mismatch. go test ./... + golangci-lint run ./... clean."
+      ],
+      "started_at": "2026-05-11T22:48:40.333502+02:00",
+      "completed_at": "2026-05-11T22:51:16.010674+02:00",
+      "elapsed_minutes": 2
     },
     "task-tokenops-proxy": {
       "status": "done",
@@ -778,5 +945,5 @@
       "elapsed_minutes": 3
     }
   },
-  "updated_at": "2026-05-10T13:04:58.793269+02:00"
+  "updated_at": "2026-05-11T23:02:09.536833+02:00"
 }
