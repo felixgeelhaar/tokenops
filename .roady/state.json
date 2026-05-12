@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 217,
+  "version": 230,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -1113,6 +1113,72 @@
       "completed_at": "2026-05-10T12:29:31.142022+02:00",
       "elapsed_minutes": 0
     },
+    "task-wedge-changelog-and-readme": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "README quickstart now leads with `tokenops plan set`; CHANGELOG documents wedge (session observer, session_budget tool, config-as-code, hint sweep, customer discovery doc)."
+      ],
+      "started_at": "2026-05-12T23:51:52.533235+02:00",
+      "completed_at": "2026-05-12T23:53:06.034307+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-wedge-config-set-primitive": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "tokenops plan set|unset + tokenops provider set|unset|list. config_mutate.go shared helpers (defaultConfigPath, readMutableConfig, writeMutableConfig). 6 tests. Smoke verified end-to-end: init → plan set → plan list."
+      ],
+      "started_at": "2026-05-12T23:42:34.963839+02:00",
+      "completed_at": "2026-05-12T23:44:52.222029+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-wedge-hint-sweep": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Hints in plan_tools.go + config.NextActionsFor now carry exact `tokenops plan set ...` / `tokenops provider set ...` commands. Proxy disabled-route hints already pointed at `tokenops init` — kept."
+      ],
+      "started_at": "2026-05-12T23:44:54.894333+02:00",
+      "completed_at": "2026-05-12T23:45:38.416416+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-wedge-interview-script": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "docs/customer-discovery.md: hypothesis, recruitment plan, 9-question script across 4 blocks, tracker template, synthesis rubric, reject criteria. Ready for the 5 interviews this week."
+      ],
+      "started_at": "2026-05-12T23:51:03.68423+02:00",
+      "completed_at": "2026-05-12T23:51:49.511516+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-wedge-mcp-session-observer": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/contexts/spend/session pkg + Tracker. PlanDeps gains Tracker + Provider. tokenops_plan_headroom records a ping on each call. inferSessionProvider in serve.go binds tracker to the single configured plan provider. 3 tracker tests. Pivot from auto-wrap: ships now, full per-tool wrap is follow-up."
+      ],
+      "started_at": "2026-05-12T23:45:41.209483+02:00",
+      "completed_at": "2026-05-12T23:49:20.185905+02:00",
+      "elapsed_minutes": 3
+    },
+    "task-wedge-session-budget-tool": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "plans.ComputeSessionBudget (pure function, 7 tests covering unknown plan, no-cap plan, continue/slow_down/wait_reset/switch_model branches). MCP tool tokenops_session_budget reads window + last-30min consumption, computes recommendation. Records its own ping via tracker."
+      ],
+      "started_at": "2026-05-12T23:49:22.680952+02:00",
+      "completed_at": "2026-05-12T23:51:00.56847+02:00",
+      "elapsed_minutes": 1
+    },
     "vscode-ext-mvp": {
       "status": "done",
       "path": "",
@@ -1147,5 +1213,5 @@
       "elapsed_minutes": 3
     }
   },
-  "updated_at": "2026-05-12T23:20:04.937484+02:00"
+  "updated_at": "2026-05-12T23:53:06.034308+02:00"
 }
