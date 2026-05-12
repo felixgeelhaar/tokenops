@@ -16,12 +16,12 @@ import (
 )
 
 type demoFlags struct {
-	storagePath  string
-	days         int
-	perDay       int
-	reset        bool
-	dryRun       bool
-	seed         uint64
+	storagePath string
+	days        int
+	perDay      int
+	reset       bool
+	dryRun      bool
+	seed        uint64
 }
 
 func newDemoCmd() *cobra.Command {
@@ -112,12 +112,12 @@ func resolveDemoStoragePath(override string) (string, error) {
 // give the analytics layer enough diversity to populate top_consumers
 // and provider breakdowns without resorting to invented numbers.
 type demoFixture struct {
-	Provider           eventschema.Provider
-	Model              string
-	InputCostPerKTok   float64
-	OutputCostPerKTok  float64
-	AvgInputTokens     int64
-	AvgOutputTokens    int64
+	Provider          eventschema.Provider
+	Model             string
+	InputCostPerKTok  float64
+	OutputCostPerKTok float64
+	AvgInputTokens    int64
+	AvgOutputTokens   int64
 }
 
 var demoFixtures = []demoFixture{

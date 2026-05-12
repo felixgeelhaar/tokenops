@@ -99,12 +99,13 @@ func TestInitForceOverwrites(t *testing.T) {
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "config.yaml")
 	storagePath := filepath.Join(dir, "events.db")
-	args := []string{
+	args := make([]string, 0, 9)
+	args = append(args,
 		"--config-path", configPath,
 		"--storage-path", storagePath,
 		"--rules-root", dir,
 		"--repo-id", "test-repo",
-	}
+	)
 
 	first := newInitCmd()
 	first.SetOut(&bytes.Buffer{})
