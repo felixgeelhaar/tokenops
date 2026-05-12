@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 189,
+  "version": 204,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -904,6 +904,83 @@
       "completed_at": "2026-05-11T22:56:17.174516+02:00",
       "elapsed_minutes": 3
     },
+    "task-pbc-cli-mcp-surface": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "tokenops plan list|headroom|catalog CLI subcommands + tokenops_plan_headroom MCP tool. Both use shared ConsumptionFor over the sqlite store. Structured {error,hint} when plans unconfigured or storage disabled."
+      ],
+      "started_at": "2026-05-12T22:53:40.447509+02:00",
+      "completed_at": "2026-05-12T22:55:38.6415+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-pbc-config-plans-map": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Config.Plans map + TOKENOPS_PLAN_\u003cPROVIDER\u003e env override; Validate() rejects unknown plans with listed alternatives. 3 new tests in config_test.go."
+      ],
+      "started_at": "2026-05-12T22:50:03.580986+02:00",
+      "completed_at": "2026-05-12T22:51:11.134397+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-pbc-cost-source-field": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "PromptEvent.CostSource enum (metered|plan_included|trial), schema bumped 1.1.0→1.2.0 across version.go, golden_test.go (8 sites), telemetry-contracts.md. New TestGoldenPromptEnvelopePlanIncluded covers plan-included shape. Full go test ./... green."
+      ],
+      "started_at": "2026-05-12T22:46:56.205272+02:00",
+      "completed_at": "2026-05-12T22:49:01.812214+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-pbc-demo-plan-mode": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "tokenops demo --plan flag stamps plan-included events; smoke-tested with --plan claude-max producing 216k anthropic tokens visible via tokenops plan headroom. README + docs/plan-cost-model.md cover the catalog + custom plan workflow."
+      ],
+      "started_at": "2026-05-12T22:55:40.814558+02:00",
+      "completed_at": "2026-05-12T22:57:58.764789+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-pbc-headroom-metrics": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/contexts/spend/plans/headroom.go: HeadroomReport + ComputeHeadroom + classifyRisk (low/medium/high/unknown). Handles no-cap plans, exhausted quota, insufficient history. 7 tests covering all branches."
+      ],
+      "started_at": "2026-05-12T22:52:17.180476+02:00",
+      "completed_at": "2026-05-12T22:53:38.201555+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-pbc-plan-catalog": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/contexts/spend/plans: 11 plans seeded (Claude Max/Pro, Claude Code Max/Pro, GPT Plus/Pro/Team, Copilot Individual/Business, Cursor Pro/Business). Each has dated SourceURL pinning vendor docs snapshot. Lookup/Names/Validate API + 4 tests."
+      ],
+      "started_at": "2026-05-12T22:49:03.785529+02:00",
+      "completed_at": "2026-05-12T22:50:00.308654+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-pbc-spend-engine-cost-source": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "spend.Engine.Compute short-circuits to zero cost when CostSource is plan_included or trial; metered (or empty) continues normal table lookup. 3 new tests cover all three branches."
+      ],
+      "started_at": "2026-05-12T22:51:13.693207+02:00",
+      "completed_at": "2026-05-12T22:52:14.966186+02:00",
+      "elapsed_minutes": 1
+    },
     "task-risk-based-test-coverage-uplift": {
       "status": "done",
       "path": "",
@@ -1004,5 +1081,5 @@
       "elapsed_minutes": 3
     }
   },
-  "updated_at": "2026-05-12T22:00:39.056626+02:00"
+  "updated_at": "2026-05-12T22:57:58.76479+02:00"
 }
