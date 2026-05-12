@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## [0.2.0] - 2026-05-12
+## 0.2.0 - 2026-05-12
 
 The Rule Intelligence wedge lands plus a full DDD refactor: rule
 artifacts (`CLAUDE.md`, `AGENTS.md`, Cursor rules, MCP policies) become
