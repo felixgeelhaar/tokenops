@@ -30,8 +30,9 @@ func TestWriteURLHintNormalizesBindAddress(t *testing.T) {
 			if err != nil {
 				t.Fatalf("writeURLHint: %v", err)
 			}
-			if !strings.HasSuffix(path, "tokenops/daemon.url") {
-				t.Errorf("path should end in tokenops/daemon.url; got %q", path)
+			wantSuffix := filepath.Join("tokenops", "daemon.url")
+			if !strings.HasSuffix(path, wantSuffix) {
+				t.Errorf("path should end in %s; got %q", wantSuffix, path)
 			}
 			data, err := os.ReadFile(path)
 			if err != nil {

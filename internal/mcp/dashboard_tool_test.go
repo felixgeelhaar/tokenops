@@ -50,7 +50,8 @@ func TestReadURLHint(t *testing.T) {
 // which env var drives it, so the daemon writer and MCP reader
 // always agree on location.
 func TestURLHintPathHonorsXDG(t *testing.T) {
-	t.Setenv("XDG_DATA_HOME", "/data")
+	xdg := t.TempDir()
+	t.Setenv("XDG_DATA_HOME", xdg)
 	p, err := urlHintPath()
 	if err != nil {
 		t.Fatal(err)
@@ -58,7 +59,7 @@ func TestURLHintPathHonorsXDG(t *testing.T) {
 	if !strings.HasSuffix(p, filepath.Join("tokenops", "daemon.url")) {
 		t.Errorf("path missing tokenops/daemon.url suffix: %q", p)
 	}
-	if !strings.HasPrefix(p, "/data") {
-		t.Errorf("path should start with XDG_DATA_HOME: %q", p)
+	if !strings.HasPrefix(p, xdg) {
+		t.Errorf("path should start with XDG_DATA_HOME (%s): %q", xdg, p)
 	}
 }
