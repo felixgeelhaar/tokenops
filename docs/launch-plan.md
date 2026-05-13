@@ -4,29 +4,81 @@ GTM-skill recommendation: post one Loom + one Show HN + four Discord posts + 25 
 
 ## Day 1 — Loom + Show HN
 
-### Loom outline (90 seconds)
+### Loom outline (60 seconds)
 
-**Scene 1 — 0:00–0:20 — The struggling moment**
-Open in Claude Code mid-refactor. Type a long prompt. Cut to a screen recording of an actual Anthropic rate-limit error message ("You've reached your usage limit. Try again in 2h 14m."). Voice-over:
-> "If you've used Claude Max 20x for real work, you've seen this screen. There's no warning before it hits. TokenOps predicts it from inside your agent."
+Dry-run revealed three issues with the original 90s cut: a real
+rate-limit screenshot is hard to source on-demand, a fresh install
+returns anticlimactic zeros, and `slow_down` / `wait_for_reset`
+states require ≥80% window usage which can't be staged honestly. The
+60s revision swaps live demos for honest text + pre-recorded JSON
+cards where the live path doesn't pay off.
 
-**Scene 2 — 0:20–0:55 — The fix**
-Terminal split next to Claude Code:
-1. `brew install felixgeelhaar/tap/tokenops` (skip if reviewer impatience; cut to installed prompt).
-2. `tokenops init` (one line of output).
-3. `tokenops plan set anthropic claude-max-20x` ("set plans.anthropic = claude-max-20x").
-4. In Claude Code, ask the agent: "How much headroom do I have right now?" Agent calls `tokenops_session_budget`. Response renders inline:
-   ```
-   window: 71 / 200 (35.5%) — resets in 5h
-   recommended_action: continue
-   confidence: high
-   ```
+**0:00–0:10 — Hook (voice over a Claude Code session in progress)**
+Stay on a normal-looking coding session. No fake screenshot. Voice:
+> "Claude Max cuts you off mid-task. No warning. You lose 90 minutes of focus. Your AI agent should see this coming."
 
-**Scene 3 — 0:55–1:30 — The honest part**
-Voice-over:
-> "TokenOps observes MCP traffic, not your raw Claude turns — yet. Every response says so. When you're 80% through your window with 90 minutes left, it says `slow_down`. When you're cooked, it says `wait_for_reset`."
-Cut to the response payload with `signal_quality.level: low` highlighted.
-> "Open source. Local-first. Brew install above. Github link in the description."
+**0:10–0:30 — Install (live terminal, large font)**
+Show exactly two commands typed live. Output rendered inline.
+```bash
+tokenops init
+tokenops plan set anthropic claude-max-20x
+```
+Voice: "Two commands. Local install. No cloud."
+
+**0:30–0:50 — Live agent call (split: terminal + Claude Code)**
+In Claude Code, ask: *"How much headroom do I have right now?"* Agent calls `tokenops_session_budget`. Show the actual response (whatever your real session returns at recording time — modest numbers are fine).
+```json
+{
+  "window_consumed": 7,
+  "window_cap": 200,
+  "window_pct": 3.5,
+  "recommended_action": "continue",
+  "confidence": "medium",
+  "signal_quality": {
+    "level": "low",
+    "caveat": "TokenOps observes MCP tool invocations only..."
+  }
+}
+```
+Voice: "Now your agent can ask. Live. In-band."
+
+**0:50–1:00 — Honest close (pre-recorded JSON card, full-screen)**
+Display a pre-recorded card showing what happens at 85% window:
+```json
+{
+  "window_consumed": 170,
+  "window_cap": 200,
+  "window_pct": 85,
+  "recommended_action": "slow_down",
+  "will_hit_cap_within": "32m",
+  "confidence": "high"
+}
+```
+Voice: "At 85% it says slow_down. When you're cooked, wait_for_reset. Open source. Github link below."
+
+### Pre-recording checklist
+
+Run this exact sequence to avoid re-shoots:
+
+1. **Burn in real signal** — open Claude Code, call `tokenops_session_budget` 8-10 times so window_consumed climbs to a non-zero number with `confidence: medium` or `high`. Empty store demos look broken.
+2. **Clear demo contamination** — `tokenops demo --reset-only` if any seeded events remain. `tokenops_data_sources` should show only `mcp-session`.
+3. **Terminal setup** — iTerm or Ghostty, font 18pt+, dark theme, prompt trimmed to `$`. Window 1280x720.
+4. **Claude Code setup** — empty conversation, MCP server reconnected (`/mcp`), no leftover tool output visible. Single split with terminal on the right.
+5. **Recording** — Loom desktop app, 30fps, "Show clicks" on, no countdown overlay.
+6. **Two takes minimum**. Scene transitions are unforgiving; the second take is always tighter.
+7. **Pre-record the closing JSON card** as a static image (png or screen capture of a real-looking response). Drop in during editing.
+
+### Post-recording checklist
+
+1. Trim to ≤60s. If the cut runs 65s, trim hook + close; never trim live demo.
+2. Caption-burn the voice-over (Loom auto-captions are good enough; check the technical words).
+3. Set Loom video title to: **"TokenOps — predict your Claude Max rate-limit cutoffs from inside Claude Code (60s)"**.
+4. Get a stable shareable URL. Paste into:
+   - Show HN body (replace the existing "Repo:" line).
+   - `docs/launch-plan.md` Show HN section (commit the URL).
+   - Discord cross-posts (replace the `[Loom link]` placeholder).
+   - 25-founder DMs.
+5. Smoke-test: send the URL to one person who doesn't know TokenOps. Ask "what is this?". If they don't get it in 10 seconds, recut before posting publicly.
 
 ### Show HN post
 
