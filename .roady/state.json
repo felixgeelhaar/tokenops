@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 243,
+  "version": 258,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -1157,6 +1157,83 @@
       "completed_at": "2026-05-10T12:30:22.590987+02:00",
       "elapsed_minutes": 0
     },
+    "task-sig-catalog-alias": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "plans.ResolveAlias + deprecatedAliases map. Lookup transparently follows aliases. Validate accepts them. tokenops plan set claude-max prints \"renamed claude-max -\u003e claude-max-20x\" and writes the modern name. 4 new tests."
+      ],
+      "started_at": "2026-05-13T11:17:29.328098+02:00",
+      "completed_at": "2026-05-13T11:18:44.444126+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-sig-changelog-readme": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "CHANGELOG Unreleased entry documents signal_quality, empty-state checklist, data_warning banner, hot-reload, catalog alias, launch docs. README adds signal_quality level explainer + notes hot-reload removes the reconnect step."
+      ],
+      "started_at": "2026-05-13T11:20:05.081338+02:00",
+      "completed_at": "2026-05-13T11:21:07.84947+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-sig-empty-state-scorecard": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "GradeWarmingUp + NewWarmingUp + FirstWeekChecklist; Build/BuildFromStore route to it when no KPI computed AND no overrides set. CLI text renderer special-cases the warming_up grade to print the checklist. Smoke: empty store → 3-step checklist; existing store with attributed events → standard grade card."
+      ],
+      "started_at": "2026-05-13T11:10:02.396032+02:00",
+      "completed_at": "2026-05-13T11:12:57.523857+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-sig-mcp-hot-reload": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "cli/config_watcher.go polls config.yaml mtime every 2s, reloads + atomic-swap on change. PlanDeps gains ConfigGetter func; activeConfig() prefers it. serve.go wires watcher.Get into PlanDeps so tokenops plan set propagates without restart. No new dependencies."
+      ],
+      "started_at": "2026-05-13T11:14:34.905158+02:00",
+      "completed_at": "2026-05-13T11:17:25.234887+02:00",
+      "elapsed_minutes": 2
+    },
+    "task-sig-outreach-plan": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "docs/launch-plan.md (90s Loom script, Show HN post + first-comment plant, 4 Discord cross-post variants, 25-founder DM template, blog post outline, success criteria + non-goals). docs/launch-tracker.md (10-row tracker, per-call notes, synthesis rubric, negative-signal log). Operator can act on Day 1 without further prep."
+      ],
+      "started_at": "2026-05-13T11:18:48.282488+02:00",
+      "completed_at": "2026-05-13T11:20:00.813081+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-sig-signal-quality": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "plans.SignalQuality + ClassifySignal pure function (5 tests). HeadroomReport + SessionBudget JSON gain signal_quality field. MCP plan_tools reads CountBySource and feeds proxy + mcp-session counts. Default response includes caveat about MCP-ping heuristic."
+      ],
+      "started_at": "2026-05-13T11:06:48.369071+02:00",
+      "completed_at": "2026-05-13T11:09:58.869792+02:00",
+      "elapsed_minutes": 3
+    },
+    "task-sig-synthetic-banner": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "mcp.DataWarning + maybeDataWarning helper. tokenops_spend_summary, tokenops_plan_headroom, tokenops_session_budget attach data_warning when demo/total \u003e 10%. include_demo=true suppresses the warning (already opted in)."
+      ],
+      "started_at": "2026-05-13T11:13:00.824206+02:00",
+      "completed_at": "2026-05-13T11:14:31.76587+02:00",
+      "elapsed_minutes": 1
+    },
     "task-telemetry-contract-and-lineage-control": {
       "status": "done",
       "path": "",
@@ -1279,5 +1356,5 @@
       "elapsed_minutes": 3
     }
   },
-  "updated_at": "2026-05-13T09:17:32.427662+02:00"
+  "updated_at": "2026-05-13T11:21:07.849471+02:00"
 }
