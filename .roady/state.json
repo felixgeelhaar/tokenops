@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 259,
+  "version": 260,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -717,6 +717,11 @@
       "completed_at": "2026-05-09T21:46:13.447875+02:00",
       "elapsed_minutes": 685
     },
+    "task-auto-detect-init-wizard": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
     "task-branch-protection-compliance-guardrail": {
       "status": "done",
       "path": "",
@@ -737,6 +742,21 @@
       ],
       "started_at": "2026-05-10T12:30:02.478352+02:00",
       "completed_at": "2026-05-10T12:30:09.67615+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-coach-auto-model-picker": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "task-coach-config-surface": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "task-coach-llm-wiring": {
+      "status": "pending",
+      "path": "",
       "elapsed_minutes": 0
     },
     "task-coaching-engine": {
@@ -1259,6 +1279,21 @@
       ],
       "started_at": "2026-05-10T12:29:21.527752+02:00",
       "completed_at": "2026-05-10T12:29:31.142022+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-ui-markdown-rendering": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "task-ui-svg-sparklines": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "task-ui-vue-d3-dashboard": {
+      "status": "pending",
+      "path": "",
       "elapsed_minutes": 0
     },
     "task-wedge-changelog-and-readme": {
