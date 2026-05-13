@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 258,
+  "version": 259,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -837,6 +837,11 @@
       "started_at": "2026-05-12T21:43:54.648512+02:00",
       "completed_at": "2026-05-12T21:49:10.198849+02:00",
       "elapsed_minutes": 5
+    },
+    "task-include-demo-split": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
     },
     "task-integrations": {
       "status": "done",
