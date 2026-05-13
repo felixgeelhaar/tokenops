@@ -62,7 +62,7 @@ func Detect(env Env) []Detection {
 	if env == nil {
 		env = OSEnv{}
 	}
-	var out []Detection
+	out := make([]Detection, 0, 8)
 	out = append(out, detectClaudeCode(env)...)
 	out = append(out, detectClaudeDesktop(env)...)
 	out = append(out, detectCursor(env)...)
