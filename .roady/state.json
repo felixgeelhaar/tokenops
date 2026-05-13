@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 260,
+  "version": 268,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -718,9 +718,15 @@
       "elapsed_minutes": 685
     },
     "task-auto-detect-init-wizard": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/cli/detect package: Detect() sniffs ~/.claude (Claude Code), claude_desktop_config.json (Desktop), ~/.cursor (Cursor), ChatGPT Desktop dir, ANTHROPIC/OPENAI/GEMINI_API_KEY env vars. Tests cover positive/negative/sorted-by-confidence cases. tokenops init --detect renders detections + copy-pasteable plan-set commands. Tier ambiguity (Max 5x vs 20x) flagged with pick: hint."
+      ],
+      "started_at": "2026-05-13T22:03:19.059449+02:00",
+      "completed_at": "2026-05-13T22:07:39.897032+02:00",
+      "elapsed_minutes": 4
     },
     "task-branch-protection-compliance-guardrail": {
       "status": "done",
@@ -745,8 +751,14 @@
       "elapsed_minutes": 0
     },
     "task-coach-auto-model-picker": {
-      "status": "pending",
+      "status": "done",
       "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "Already shipped alongside the LLM wiring — router.go + 6 tests. Cheapest model derived dynamically from spend.Table via Cheapest(provider). No hardcoded model names."
+      ],
+      "started_at": "2026-05-13T22:01:43.245898+02:00",
+      "completed_at": "2026-05-13T22:01:47.7394+02:00",
       "elapsed_minutes": 0
     },
     "task-coach-config-surface": {
@@ -755,9 +767,15 @@
       "elapsed_minutes": 0
     },
     "task-coach-llm-wiring": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "Pipeline.Config gains SummaryEnricher interface; process() calls Enrich per event, swallows errors with log. NewLLMEnricher wraps llm.Backend; LLM output promotes to Summary, heuristic falls into Details. 4 tests cover promote/error-keeps-heuristic/empty-no-change/nil-backend."
+      ],
+      "started_at": "2026-05-13T21:58:54.762747+02:00",
+      "completed_at": "2026-05-13T22:01:38.478141+02:00",
+      "elapsed_minutes": 2
     },
     "task-coaching-engine": {
       "status": "done",
@@ -1282,9 +1300,15 @@
       "elapsed_minutes": 0
     },
     "task-ui-markdown-rendering": {
-      "status": "pending",
+      "status": "done",
       "path": "",
-      "elapsed_minutes": 0
+      "owner": "ai-agent",
+      "evidence": [
+        "internal/mcp/render.go: markdownPayload wraps human summary + JSON appendix; renderBudgetSummary builds the per-plan table. tokenops_session_budget returns markdown table + collapsed JSON; clients that render markdown (Desktop/Code/Cursor) get styled tables. Tested."
+      ],
+      "started_at": "2026-05-13T22:01:51.327827+02:00",
+      "completed_at": "2026-05-13T22:03:12.927672+02:00",
+      "elapsed_minutes": 1
     },
     "task-ui-svg-sparklines": {
       "status": "pending",
@@ -1396,5 +1420,5 @@
       "elapsed_minutes": 3
     }
   },
-  "updated_at": "2026-05-13T11:21:07.849471+02:00"
+  "updated_at": "2026-05-13T22:07:39.897032+02:00"
 }
