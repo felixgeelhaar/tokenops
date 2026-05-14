@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -28,15 +29,17 @@ func TestMintDashTokenCLI(t *testing.T) {
 // dashTokenPathCLI must honour XDG_DATA_HOME so the daemon writer
 // and the CLI rotator always agree on location.
 func TestDashTokenPathCLIHonoursXDG(t *testing.T) {
-	t.Setenv("XDG_DATA_HOME", "/data")
+	xdg := t.TempDir()
+	t.Setenv("XDG_DATA_HOME", xdg)
 	p, err := dashTokenPathCLI()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.HasSuffix(p, "tokenops/dashboard.token") {
-		t.Errorf("path %q missing tokenops/dashboard.token suffix", p)
+	wantSuffix := filepath.Join("tokenops", "dashboard.token")
+	if !strings.HasSuffix(p, wantSuffix) {
+		t.Errorf("path %q missing %s suffix", p, wantSuffix)
 	}
-	if !strings.HasPrefix(p, "/data") {
-		t.Errorf("path %q should start with XDG_DATA_HOME", p)
+	if !strings.HasPrefix(p, xdg) {
+		t.Errorf("path %q should start with XDG_DATA_HOME (%s)", p, xdg)
 	}
 }
