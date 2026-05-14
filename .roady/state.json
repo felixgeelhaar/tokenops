@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 269,
+  "version": 287,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -762,8 +762,14 @@
       "elapsed_minutes": 0
     },
     "task-coach-config-surface": {
-      "status": "pending",
+      "status": "done",
       "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "PR #48 (5756dcd) merged; dynamic-cheapest router selects coaching model from pricing table at runtime, no hardcoded names"
+      ],
+      "started_at": "2026-05-14T09:41:29.671603+02:00",
+      "completed_at": "2026-05-14T09:41:38.408218+02:00",
       "elapsed_minutes": 0
     },
     "task-coach-llm-wiring": {
@@ -798,6 +804,50 @@
       "started_at": "2026-05-10T12:30:02.516802+02:00",
       "completed_at": "2026-05-10T12:30:09.72788+02:00",
       "elapsed_minutes": 0
+    },
+    "task-dashboard-favicon": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "PR #59 opened with inline SVG favicon"
+      ],
+      "started_at": "2026-05-14T09:42:16.700464+02:00",
+      "completed_at": "2026-05-14T09:42:55.61353+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-dashboard-filter-localstorage": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "PR #60 opened with localStorage filter persistence"
+      ],
+      "started_at": "2026-05-14T09:43:04.11237+02:00",
+      "completed_at": "2026-05-14T09:44:37.01716+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-dashboard-rotate-token": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "PR #62 opened with rotate-token CLI command + tests"
+      ],
+      "started_at": "2026-05-14T09:47:06.100638+02:00",
+      "completed_at": "2026-05-14T09:49:02.456733+02:00",
+      "elapsed_minutes": 1
+    },
+    "task-dashboard-stacked-area-model": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "PR #64 opened with per-model stacked area chart"
+      ],
+      "started_at": "2026-05-14T09:53:00.005025+02:00",
+      "completed_at": "2026-05-14T09:56:28.17774+02:00",
+      "elapsed_minutes": 3
     },
     "task-data-telemetry": {
       "status": "done",
@@ -1090,6 +1140,17 @@
       "completed_at": "2026-05-12T22:52:14.966186+02:00",
       "elapsed_minutes": 1
     },
+    "task-plan-catalog-mistral-codex": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "PR #61 opened with Mistral + Codex Plus catalog entries + pricing"
+      ],
+      "started_at": "2026-05-14T09:44:45.791916+02:00",
+      "completed_at": "2026-05-14T09:46:56.920214+02:00",
+      "elapsed_minutes": 2
+    },
     "task-risk-based-test-coverage-uplift": {
       "status": "done",
       "path": "",
@@ -1311,16 +1372,37 @@
       "elapsed_minutes": 1
     },
     "task-ui-svg-sparklines": {
-      "status": "in_progress",
+      "status": "done",
       "path": "",
       "owner": "ai-agent",
+      "evidence": [
+        "PR #49 (cc938ce) merged v0.10.0; SVG sparkline + headroom gauge live in tokenops_burn_rate / tokenops_session_budget"
+      ],
       "started_at": "2026-05-13T22:13:30.136005+02:00",
-      "elapsed_minutes": 0
+      "completed_at": "2026-05-14T09:40:55.944796+02:00",
+      "elapsed_minutes": 687
     },
     "task-ui-vue-d3-dashboard": {
-      "status": "pending",
+      "status": "done",
       "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "PR #50 (b176b16) merged v0.10.0; daemon serves Vue+D3 dashboard at /dashboard; tokenops_dashboard MCP tool returns clickable URL"
+      ],
+      "started_at": "2026-05-14T09:41:11.110615+02:00",
+      "completed_at": "2026-05-14T09:41:21.498619+02:00",
       "elapsed_minutes": 0
+    },
+    "task-vendor-usage-backfill": {
+      "status": "done",
+      "path": "",
+      "owner": "ai-agent",
+      "evidence": [
+        "PR #63 opened with vendor-usage backfill subcommand + NewEnvelope export"
+      ],
+      "started_at": "2026-05-14T09:49:28.719096+02:00",
+      "completed_at": "2026-05-14T09:51:55.660045+02:00",
+      "elapsed_minutes": 2
     },
     "task-wedge-changelog-and-readme": {
       "status": "done",
@@ -1422,5 +1504,5 @@
       "elapsed_minutes": 3
     }
   },
-  "updated_at": "2026-05-13T22:13:30.136005+02:00"
+  "updated_at": "2026-05-14T09:56:28.177741+02:00"
 }
