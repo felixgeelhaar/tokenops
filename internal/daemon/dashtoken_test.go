@@ -3,6 +3,7 @@ package daemon
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -34,14 +35,20 @@ func TestLoadOrMintDashTokenMintsAndPersists(t *testing.T) {
 	if len(tok1) < 20 {
 		t.Errorf("minted token too short: %d bytes", len(tok1))
 	}
-	// Persisted at 0600.
+	// Persisted at 0600 on POSIX. Windows applies ACLs instead of
+	// the unix permission bits, so os.Stat reports the file as
+	// world-readable regardless of WriteFile's mode arg — skip the
+	// check there. The OS still gates access via the ACL inherited
+	// from the user's profile directory.
 	p, _ := dashTokenPath()
 	info, err := os.Stat(p)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if info.Mode().Perm() != 0o600 {
-		t.Errorf("token file mode = %v; want 0600", info.Mode().Perm())
+	if runtime.GOOS != "windows" {
+		if info.Mode().Perm() != 0o600 {
+			t.Errorf("token file mode = %v; want 0600", info.Mode().Perm())
+		}
 	}
 	// Second call returns the same persisted value.
 	tok2, err := loadOrMintDashToken("")
