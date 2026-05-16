@@ -1,6 +1,6 @@
 {
   "project_id": "tokenops",
-  "version": 287,
+  "version": 289,
   "task_states": {
     "analytics-aggregator": {
       "status": "done",
@@ -717,6 +717,11 @@
       "completed_at": "2026-05-09T21:46:13.447875+02:00",
       "elapsed_minutes": 685
     },
+    "task-anthropic-cookie-usage": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
     "task-auto-detect-init-wizard": {
       "status": "done",
       "path": "",
@@ -738,6 +743,13 @@
       "started_at": "2026-05-10T12:57:22.298377+02:00",
       "completed_at": "2026-05-10T12:58:41.157966+02:00",
       "elapsed_minutes": 1
+    },
+    "task-claudecode-jsonl-reader": {
+      "status": "in_progress",
+      "path": "",
+      "owner": "ai-agent",
+      "started_at": "2026-05-14T11:38:57.804111+02:00",
+      "elapsed_minutes": 0
     },
     "task-cli": {
       "status": "done",
@@ -792,6 +804,21 @@
       ],
       "started_at": "2026-05-10T12:29:43.907334+02:00",
       "completed_at": "2026-05-10T12:29:54.173448+02:00",
+      "elapsed_minutes": 0
+    },
+    "task-codex-jsonl-reader": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "task-copilot-api-client": {
+      "status": "pending",
+      "path": "",
+      "elapsed_minutes": 0
+    },
+    "task-cursor-api-client": {
+      "status": "pending",
+      "path": "",
       "elapsed_minutes": 0
     },
     "task-dashboard": {
@@ -1504,5 +1531,5 @@
       "elapsed_minutes": 3
     }
   },
-  "updated_at": "2026-05-14T09:56:28.177741+02:00"
+  "updated_at": "2026-05-14T11:38:57.804111+02:00"
 }
