@@ -18,6 +18,22 @@ func TestProfileForNonClaudeCodeReturnsNil(t *testing.T) {
 	}
 }
 
+// codex: prefix gets the OpenAI Codex profile (250k peak, 500k
+// growth — tighter than Claude Code because Codex defaults to a
+// 256k context window on gpt-5 family).
+func TestProfileForCodex(t *testing.T) {
+	p := ProfileFor("codex:rollout-abc")
+	if p == nil {
+		t.Fatal("ProfileFor(codex:...) returned nil")
+	}
+	if p.MaxContextTokens != 250_000 {
+		t.Errorf("codex MaxContextTokens = %d; want 250000", p.MaxContextTokens)
+	}
+	if p.ContextGrowthLimitTokens != 500_000 {
+		t.Errorf("codex growth = %d; want 500000", p.ContextGrowthLimitTokens)
+	}
+}
+
 // claude-code: prefix gets the looser code-agent thresholds.
 func TestProfileForClaudeCode(t *testing.T) {
 	cases := []string{

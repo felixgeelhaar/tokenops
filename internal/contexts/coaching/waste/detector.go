@@ -96,27 +96,28 @@ func (d *Detector) Detect(trace *workflow.Trace) []*eventschema.CoachingEvent {
 	return out
 }
 
-// ProfileFor returns a Config tuned to a workflow's expected shape, or
-// nil when the default short-workflow thresholds apply. Currently
-// the only profile is "claude-code:" — 1M-context code-agent
-// sessions need much looser ceilings to surface real waste instead
-// of firing on every session.
+// ProfileFor returns a Config tuned to a workflow's expected shape,
+// or nil when the default short-workflow thresholds apply. Two
+// code-agent profiles ship today:
+//
+//   - "claude-code:" — Anthropic's claude-opus-4-7 caps at 1M
+//     context; flag only at ~90% of the ceiling.
+//   - "codex:" — OpenAI Codex CLI runs ~256k context windows on
+//     gpt-5 family models; flag only near 250k peak.
+//
+// Both profiles also raise the cumulative growth limit so legitimate
+// long-running agent sessions don't trip on every run.
 func ProfileFor(workflowID string) *Config {
-	if strings.HasPrefix(workflowID, "claude-code:") {
+	switch {
+	case strings.HasPrefix(workflowID, "claude-code:"):
 		return &Config{
-			// Anthropic's claude-opus-4-7 caps at 1M context; we
-			// flag only when the operator pushes past 90% of that
-			// ceiling. Real-world sessions cluster at 0.3-0.7M;
-			// trips reflect actually-near-cap workflows.
-			MaxContextTokens: 900_000,
-			// A 6,000-turn coding session legitimately grows
-			// several MB of cumulative context; flag only the
-			// extreme tail.
+			MaxContextTokens:         900_000,
 			ContextGrowthLimitTokens: 2_000_000,
-			// Code agents tool-loop tighter than chat agents; the
-			// default 4 is fine.
-			MaxConsecutiveAgentLoops: 0,
-			SystemRedundancyMin:      0,
+		}
+	case strings.HasPrefix(workflowID, "codex:"):
+		return &Config{
+			MaxContextTokens:         250_000,
+			ContextGrowthLimitTokens: 500_000,
 		}
 	}
 	return nil
