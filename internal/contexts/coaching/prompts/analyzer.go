@@ -10,19 +10,19 @@ import (
 // rendering (CLI --json, MCP tool result) so the field names are the
 // rendering contract — don't rename without bumping the MCP tool.
 type Findings struct {
-	TotalPrompts        int            `json:"total_prompts"`
-	AvgChars            float64        `json:"avg_chars"`
-	AvgWords            float64        `json:"avg_words"`
-	MinChars            int            `json:"min_chars"`
-	MaxChars            int            `json:"max_chars"`
-	LengthDistribution  map[string]int `json:"length_distribution"`
-	VagueShort          int            `json:"vague_short_count"`
-	VagueShortSamples   []string       `json:"vague_short_samples,omitempty"`
-	Acknowledgements    int            `json:"acknowledgement_count"`
-	ShortQuestions      int            `json:"short_question_count"`
-	NoContextSingles    int            `json:"no_context_singles_count"`
-	RepeatedPrompts     []RepeatedItem `json:"repeated_prompts,omitempty"`
-	Recommendations     []string       `json:"recommendations"`
+	TotalPrompts       int            `json:"total_prompts"`
+	AvgChars           float64        `json:"avg_chars"`
+	AvgWords           float64        `json:"avg_words"`
+	MinChars           int            `json:"min_chars"`
+	MaxChars           int            `json:"max_chars"`
+	LengthDistribution map[string]int `json:"length_distribution"`
+	VagueShort         int            `json:"vague_short_count"`
+	VagueShortSamples  []string       `json:"vague_short_samples,omitempty"`
+	Acknowledgements   int            `json:"acknowledgement_count"`
+	ShortQuestions     int            `json:"short_question_count"`
+	NoContextSingles   int            `json:"no_context_singles_count"`
+	RepeatedPrompts    []RepeatedItem `json:"repeated_prompts,omitempty"`
+	Recommendations    []string       `json:"recommendations"`
 }
 
 // RepeatedItem captures a verbatim-repeated prompt + how often it
