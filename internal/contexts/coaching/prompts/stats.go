@@ -28,7 +28,7 @@ type TurnStats struct {
 	AvgCachedTokens   float64 `json:"avg_cached_tokens"`
 	AvgOutputTokens   float64 `json:"avg_output_tokens"`
 	AvgCostUSD        float64 `json:"avg_cost_usd"`
-	AvgSeconds        float64 `json:"avg_seconds"`     // est. human attention per turn
+	AvgSeconds        float64 `json:"avg_seconds"` // est. human attention per turn
 	WindowDescription string  `json:"window_description,omitempty"`
 }
 
