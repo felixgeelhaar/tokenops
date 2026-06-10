@@ -54,11 +54,7 @@ func ParseTable(data []byte) (Table, error) {
 	}
 	for provider, models := range doc.Rates {
 		for model, r := range models {
-			t.Rates[Key{eventschema.Provider(provider), model}] = Rate{
-				InputPerMillion:       r.InputPerMillion,
-				OutputPerMillion:      r.OutputPerMillion,
-				CachedInputPerMillion: r.CachedInputPerMillion,
-			}
+			t.Rates[Key{eventschema.Provider(provider), model}] = Rate(r)
 		}
 	}
 	return t, nil
