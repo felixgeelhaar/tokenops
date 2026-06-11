@@ -52,7 +52,7 @@ func TestPlanStampSink(t *testing.T) {
 
 func TestPlanStampSinkPassthroughWithoutPlans(t *testing.T) {
 	next := &captureSink{}
-	var s events.Sink = newPlanStampSink(next, config.Config{})
+	s := newPlanStampSink(next, config.Config{})
 	if s != events.Sink(next) {
 		t.Error("no plans configured should return next unchanged")
 	}
