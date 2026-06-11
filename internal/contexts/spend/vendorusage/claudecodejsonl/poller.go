@@ -158,6 +158,11 @@ func newEnvelope(t Turn, costSource eventschema.CostSource) *eventschema.Envelop
 		Timestamp:     t.Timestamp,
 		Source:        SourceTag,
 		Attributes: map[string]string{
+			// One event per ASSISTANT TURN — finer than the vendor's
+			// "messages" meter (user prompts). Plan window math reads
+			// this to count tokens without counting the event as a
+			// message (see plans.ConsumptionInWindow).
+			"granularity":          "assistant_turn",
 			"session_id":           t.SessionID,
 			"project":              t.Project,
 			"message_id":           t.MessageID,

@@ -133,6 +133,10 @@ func newEnvelope(t Turn, costSource eventschema.CostSource) *eventschema.Envelop
 	totalTokens := inputTokens + t.OutputTokens + t.ReasoningTok
 	h := sha256.Sum256([]byte("codex-jsonl|" + t.SessionID + "|" + strconv.Itoa(t.RecordSequence)))
 	attrs := map[string]string{
+		// One event per token_count record (assistant turn), not per
+		// user message — plan window math must not count these as
+		// messages (see plans.ConsumptionInWindow).
+		"granularity":          "assistant_turn",
 		"session_id":           t.SessionID,
 		"sequence":             strconv.Itoa(t.RecordSequence),
 		"cached_input":         fmt.Sprintf("%d", t.CachedTokens),
