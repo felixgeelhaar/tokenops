@@ -33,9 +33,18 @@ type Registry struct {
 	policy     LossPolicy
 }
 
+// aliaser is the optional interface a Formatter implements to register
+// under additional command tokens (e.g. a package-manager formatter that
+// handles "yarn" and "pnpm", or "pip" and "pip3"). Command() remains the
+// canonical token; Aliases() returns the extra ones.
+type aliaser interface {
+	Aliases() []string
+}
+
 // NewRegistry constructs a Registry with the given policy and formatters.
 // A nil Overrides map is tolerated. Later formatters for the same command
-// token replace earlier ones.
+// token replace earlier ones. A formatter implementing aliaser is also
+// registered under each of its alias tokens.
 func NewRegistry(policy LossPolicy, formatters ...Formatter) *Registry {
 	r := &Registry{
 		formatters: make(map[string]Formatter, len(formatters)),
@@ -43,6 +52,11 @@ func NewRegistry(policy LossPolicy, formatters ...Formatter) *Registry {
 	}
 	for _, f := range formatters {
 		r.formatters[strings.ToLower(f.Command())] = f
+		if a, ok := f.(aliaser); ok {
+			for _, alias := range a.Aliases() {
+				r.formatters[strings.ToLower(alias)] = f
+			}
+		}
 	}
 	return r
 }
@@ -141,6 +155,12 @@ func DefaultFormatters() []Formatter {
 		NewCargo(),
 		NewPytest(),
 		NewDocker(),
+		NewKubectl(),
+		NewTerraform(),
+		NewPip(),
+		NewTSC(),
+		NewESLint(),
+		NewYarn(),
 	}
 }
 
