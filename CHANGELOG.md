@@ -26,6 +26,14 @@
   - Proxy plane: a `command_fmt` optimizer compresses tool-output blocks
     (Anthropic `tool_result`, OpenAI `role:tool`) in the request body via
     content-sniffing, so agents without the shell hook still benefit.
+  - **Offline learning loop** (`tokenops fmt learn`): mines the recovery
+    index (compression + re-access records) to propose where the catalog
+    should improve — next formatters to write (commands falling back to
+    the generic scrub, ranked by raw bytes) and possible over-compression
+    (commands whose compact output is re-fetched often via
+    `tokenops fmt recover <id>`, with loss-level tuning hints). Advisory
+    only: the formatters stay deterministic; proposals become
+    corpus-gated code changes, never runtime self-modification.
 
 ## 0.25.1 - 2026-06-12
 

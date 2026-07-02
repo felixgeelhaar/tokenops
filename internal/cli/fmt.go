@@ -95,6 +95,11 @@ Examples:
 				}
 			}
 
+			// Append a learn record (best-effort) so `tokenops fmt learn`
+			// can mine next-formatter priorities + over-compression.
+			command := firstArgvToken(args)
+			_ = recordCompressRun(recoverDir, command, policy.LevelFor(command).String(), res, time.Now())
+
 			if !quiet {
 				printFmtStats(cmd, res, statsJSON)
 			}
@@ -116,6 +121,8 @@ Examples:
 	cmd.Flags().StringVar(&dbFlag, "db", "", "events.db path for --emit (defaults to ~/.tokenops/events.db)")
 	cmd.AddCommand(newFmtBenchCmd())
 	cmd.AddCommand(newFmtHookCmd())
+	cmd.AddCommand(newFmtRecoverCmd())
+	cmd.AddCommand(newFmtLearnCmd())
 	return cmd
 }
 
@@ -231,9 +238,11 @@ type fmtResult struct {
 	BytesBefore  int
 	BytesAfter   int
 	LinesDropped int
-	Compressed   bool   // a command formatter (not generic) handled stdout
+	Compressed   bool   // net reduction achieved by a command formatter
+	Handled      bool   // a dedicated command formatter ran (not the generic fallback)
 	CriticalKept bool
 	RecoveryPath string
+	RecoveryID   string // basename of RecoveryPath without extension; links learn records
 	Notes        string
 }
 
@@ -278,6 +287,7 @@ func runFmt(ctx context.Context, reg *formatter.Registry, argv []string, opt fmt
 		path, err := writeRecovery(opt.RecoverDir, argv, rawStdout, res.Stderr, exitCode)
 		if err == nil {
 			res.RecoveryPath = path
+			res.RecoveryID = recoveryID(path)
 		}
 	}
 
@@ -292,10 +302,18 @@ func runFmt(ctx context.Context, reg *formatter.Registry, argv []string, opt fmt
 	res.Stdout = ensureTrailingNewline(fr.Compact)
 	res.BytesAfter = fr.BytesAfter
 	res.LinesDropped = fr.LinesDropped
+	res.Handled = handled
 	res.Compressed = handled && fr.CriticalKept && fr.BytesAfter < fr.BytesBefore
 	res.CriticalKept = fr.CriticalKept
 	res.Notes = fr.Notes
 	return res, nil
+}
+
+// recoveryID derives the learn-record ID from a recovery file path: its
+// base name without the .out extension.
+func recoveryID(path string) string {
+	base := filepath.Base(path)
+	return strings.TrimSuffix(base, filepath.Ext(base))
 }
 
 // writeRecovery persists the full raw output to a recovery file and returns
@@ -364,9 +382,15 @@ func printFmtStats(cmd *cobra.Command, res *fmtResult, asJSON bool) {
 	if res.BytesBefore > 0 {
 		pct = 100 * float64(saved) / float64(res.BytesBefore)
 	}
+	recover := res.RecoveryPath
+	if res.RecoveryID != "" {
+		// Point at the recover verb so a re-fetch is logged as a learning
+		// signal (possible critical-line miss) rather than a silent read.
+		recover = "tokenops fmt recover " + res.RecoveryID
+	}
 	fmt.Fprintf(cmd.ErrOrStderr(),
-		"tokenops fmt: saved ~%d tokens (%.0f%% of stdout, %d lines) · recovery: %s\n",
-		estTokens(saved), pct, res.LinesDropped, res.RecoveryPath)
+		"tokenops fmt: saved ~%d tokens (%.0f%% of stdout, %d lines) · full: %s\n",
+		estTokens(saved), pct, res.LinesDropped, recover)
 }
 
 // ensureTrailingNewline appends a newline to non-empty compact output so
