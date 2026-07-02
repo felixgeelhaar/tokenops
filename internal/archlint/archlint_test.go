@@ -62,6 +62,7 @@ var domainPackages = []string{
 	// legitimately uses io/fs + os, so it is excluded from the domain
 	// arch-lint sweep below.
 	"github.com/felixgeelhaar/tokenops/internal/contexts/optimization/optimizer",
+	"github.com/felixgeelhaar/tokenops/internal/contexts/optimization/formatter",
 	"github.com/felixgeelhaar/tokenops/internal/contexts/optimization/replay",
 	"github.com/felixgeelhaar/tokenops/internal/contexts/governance/scorecard",
 	"github.com/felixgeelhaar/tokenops/internal/contexts/governance/coverdebt",

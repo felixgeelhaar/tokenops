@@ -1,0 +1,315 @@
+package cli
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/spf13/cobra"
+
+	"github.com/felixgeelhaar/tokenops/internal/config"
+	"github.com/felixgeelhaar/tokenops/internal/contexts/optimization/formatter"
+)
+
+// newFmtCmd assembles `tokenops fmt` — the deterministic command-output
+// compressor. It runs a wrapped command, compresses its stdout to a compact
+// form before that output enters the agent context, and preserves the full
+// output in a local recovery store so nothing is ever lost.
+//
+//	tokenops fmt -- git status
+//	tokenops fmt --level aggressive -- docker ps
+//
+// The wrapped command's exit code is propagated verbatim so an agent still
+// sees failures. stderr is passed through unchanged (errors are always
+// critical); only stdout is compressed.
+func newFmtCmd(rf *rootFlags) *cobra.Command {
+	var (
+		levelFlag  string
+		recoverDir string
+		noRecover  bool
+		quiet      bool
+		rawOnError bool
+		statsJSON  bool
+	)
+	cmd := &cobra.Command{
+		Use:   "fmt [flags] -- <command> [args...]",
+		Short: "Run a command and compress its output deterministically before it reaches the agent",
+		Long: `fmt wraps a shell command, compresses its stdout with a
+deterministic per-command formatter, and forwards the compact result. Every
+line the formatter classifies as critical (errors, failures, changed state)
+is preserved verbatim; only noise is removed. The full raw output is written
+to a recovery file (~/.tokenops/recovery/) so detail is always retrievable.
+
+Loss level is configured per command in config (optimizer.command_fmt) and
+can be overridden for a single run with --level.
+
+Examples:
+  tokenops fmt -- git status
+  tokenops fmt --level aggressive -- npm install
+  tokenops fmt --quiet -- go build ./...`,
+		Args:               cobra.MinimumNArgs(1),
+		DisableFlagParsing: false,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Config is optional for fmt; fall back to defaults on error.
+			cfg, err := loadConfig(rf)
+			if err != nil {
+				cfg = config.Config{}
+			}
+			policy, warn := buildLossPolicy(cfg.Optimizer.CommandFmt, levelFlag)
+			if warn != "" && !quiet {
+				fmt.Fprintf(cmd.ErrOrStderr(), "warning: %s\n", warn)
+			}
+			reg := formatter.NewRegistry(policy, defaultFormatters()...)
+
+			res, err := runFmt(cmd.Context(), reg, args, fmtOptions{
+				RecoverDir: recoverDir,
+				NoRecover:  noRecover,
+				RawOnError: rawOnError,
+			})
+			if err != nil {
+				return err
+			}
+
+			// Forward compact stdout and raw stderr.
+			_, _ = cmd.OutOrStdout().Write(res.Stdout)
+			_, _ = cmd.ErrOrStderr().Write(res.Stderr)
+
+			if !quiet {
+				printFmtStats(cmd, res, statsJSON)
+			}
+
+			// Propagate the child's exit code so agents see failures.
+			if res.ExitCode != 0 {
+				os.Exit(res.ExitCode)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&levelFlag, "level", "", "override loss level for this run (conservative|balanced|aggressive)")
+	cmd.Flags().StringVar(&recoverDir, "recover-dir", "", "recovery store dir (defaults to ~/.tokenops/recovery)")
+	cmd.Flags().BoolVar(&noRecover, "no-recover", false, "do not persist full output to the recovery store")
+	cmd.Flags().BoolVar(&quiet, "quiet", false, "suppress the savings/recovery stats line")
+	cmd.Flags().BoolVar(&rawOnError, "raw-on-error", true, "forward raw (uncompressed) stdout when the command exits non-zero")
+	cmd.Flags().BoolVar(&statsJSON, "stats-json", false, "emit the stats line as JSON on stderr")
+	return cmd
+}
+
+// defaultFormatters returns the built-in formatter set. Adding a formatter
+// here makes it available to the CLI and (later) the proxy optimizer.
+func defaultFormatters() []formatter.Formatter {
+	return []formatter.Formatter{
+		formatter.NewGit(),
+		formatter.NewGoTest(),
+	}
+}
+
+// buildLossPolicy maps the config strings into the domain LossPolicy and
+// applies an optional single-run level override. It returns a human-
+// readable warning when a configured token is invalid (the offending entry
+// falls back to conservative).
+func buildLossPolicy(cfg config.CommandFmtConfig, override string) (formatter.LossPolicy, string) {
+	var warns []string
+	def, ok := formatter.ParseLossLevel(cfg.Default)
+	if !ok && cfg.Default != "" {
+		warns = append(warns, fmt.Sprintf("invalid command_fmt.default %q, using conservative", cfg.Default))
+	}
+	overrides := make(map[string]formatter.LossLevel, len(cfg.Overrides))
+	for cmdTok, lvl := range cfg.Overrides {
+		parsed, ok := formatter.ParseLossLevel(lvl)
+		if !ok {
+			warns = append(warns, fmt.Sprintf("invalid command_fmt.overrides[%s]=%q, using conservative", cmdTok, lvl))
+		}
+		overrides[strings.ToLower(cmdTok)] = parsed
+	}
+	if override != "" {
+		lvl, ok := formatter.ParseLossLevel(override)
+		if !ok {
+			warns = append(warns, fmt.Sprintf("invalid --level %q, using conservative", override))
+		}
+		// A run-level override replaces the default AND clears per-command
+		// overrides for the run — the operator asked for this level.
+		def = lvl
+		overrides = nil
+	}
+	return formatter.LossPolicy{Default: def, Overrides: overrides}, strings.Join(warns, "; ")
+}
+
+// fmtOptions carries the recovery/behaviour switches into runFmt.
+type fmtOptions struct {
+	RecoverDir string
+	NoRecover  bool
+	RawOnError bool
+}
+
+// fmtResult is the outcome of a wrapped run.
+type fmtResult struct {
+	Stdout       []byte // compact (or raw when compression was declined)
+	Stderr       []byte // passed through verbatim
+	ExitCode     int
+	BytesBefore  int
+	BytesAfter   int
+	LinesDropped int
+	Compressed   bool   // a command formatter (not generic) handled stdout
+	CriticalKept bool
+	RecoveryPath string
+	Notes        string
+}
+
+// runFmt executes argv, captures stdout/stderr, compresses stdout via reg,
+// and (unless disabled) writes the full raw output to the recovery store.
+// It never returns an error for a non-zero child exit — that is reported in
+// fmtResult.ExitCode — only for failures to launch the process.
+func runFmt(ctx context.Context, reg *formatter.Registry, argv []string, opt fmtOptions) (*fmtResult, error) {
+	if len(argv) == 0 {
+		return nil, fmt.Errorf("fmt: no command given")
+	}
+	var stdout, stderr bytes.Buffer
+	c := exec.CommandContext(ctx, argv[0], argv[1:]...)
+	c.Stdout = &stdout
+	c.Stderr = &stderr
+	c.Stdin = os.Stdin
+
+	runErr := c.Run()
+	exitCode := 0
+	if runErr != nil {
+		var ee *exec.ExitError
+		if errors.As(runErr, &ee) {
+			exitCode = ee.ExitCode()
+		} else {
+			// Failed to start (command not found, permission): surface it.
+			return nil, fmt.Errorf("fmt: run %q: %w", argv[0], runErr)
+		}
+	}
+
+	rawStdout := stdout.Bytes()
+	res := &fmtResult{
+		Stderr:      stderr.Bytes(),
+		ExitCode:    exitCode,
+		BytesBefore: len(rawStdout),
+		BytesAfter:  len(rawStdout),
+		Stdout:      rawStdout,
+	}
+
+	// Recovery: persist the full raw output first, so it exists before we
+	// hand a compacted view to the agent.
+	if !opt.NoRecover && len(rawStdout)+len(res.Stderr) > 0 {
+		path, err := writeRecovery(opt.RecoverDir, argv, rawStdout, res.Stderr, exitCode)
+		if err == nil {
+			res.RecoveryPath = path
+		}
+	}
+
+	// On failure, optionally forward raw stdout so the agent sees full
+	// diagnostic detail.
+	if exitCode != 0 && opt.RawOnError {
+		res.Notes = "raw forwarded (non-zero exit)"
+		return res, nil
+	}
+
+	fr, handled := reg.Format(argv, rawStdout)
+	res.Stdout = ensureTrailingNewline(fr.Compact)
+	res.BytesAfter = fr.BytesAfter
+	res.LinesDropped = fr.LinesDropped
+	res.Compressed = handled && fr.CriticalKept && fr.BytesAfter < fr.BytesBefore
+	res.CriticalKept = fr.CriticalKept
+	res.Notes = fr.Notes
+	return res, nil
+}
+
+// writeRecovery persists the full raw output to a recovery file and returns
+// its path. The file name embeds a short content hash so re-runs of the
+// same command output are idempotent and easy to correlate.
+func writeRecovery(dir string, argv []string, stdout, stderr []byte, exitCode int) (string, error) {
+	if dir == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		dir = filepath.Join(home, ".tokenops", "recovery")
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
+	}
+	sum := sha256.Sum256(append(append([]byte(strings.Join(argv, " ")), stdout...), stderr...))
+	name := fmt.Sprintf("%s-%x.out", time.Now().UTC().Format("20060102T150405"), sum[:6])
+	path := filepath.Join(dir, name)
+
+	var b bytes.Buffer
+	fmt.Fprintf(&b, "# tokenops fmt recovery\n# command: %s\n# exit: %d\n# saved: %s\n\n",
+		strings.Join(argv, " "), exitCode, time.Now().UTC().Format(time.RFC3339))
+	if len(stdout) > 0 {
+		b.WriteString("## stdout\n")
+		b.Write(stdout)
+		b.WriteByte('\n')
+	}
+	if len(stderr) > 0 {
+		b.WriteString("## stderr\n")
+		b.Write(stderr)
+		b.WriteByte('\n')
+	}
+	if err := os.WriteFile(path, b.Bytes(), 0o644); err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
+// printFmtStats writes the savings/recovery summary to stderr so it never
+// contaminates the compacted stdout an agent parses.
+func printFmtStats(cmd *cobra.Command, res *fmtResult, asJSON bool) {
+	if asJSON {
+		enc := json.NewEncoder(cmd.ErrOrStderr())
+		_ = enc.Encode(map[string]any{
+			"bytes_before":   res.BytesBefore,
+			"bytes_after":    res.BytesAfter,
+			"tokens_saved":   estTokens(res.BytesBefore - res.BytesAfter),
+			"lines_dropped":  res.LinesDropped,
+			"compressed":     res.Compressed,
+			"critical_kept":  res.CriticalKept,
+			"recovery_path":  res.RecoveryPath,
+			"exit_code":      res.ExitCode,
+			"notes":          res.Notes,
+		})
+		return
+	}
+	saved := res.BytesBefore - res.BytesAfter
+	if saved <= 0 {
+		if res.RecoveryPath != "" {
+			fmt.Fprintf(cmd.ErrOrStderr(), "tokenops fmt: no savings (%s); recovery: %s\n", res.Notes, res.RecoveryPath)
+		}
+		return
+	}
+	pct := 0.0
+	if res.BytesBefore > 0 {
+		pct = 100 * float64(saved) / float64(res.BytesBefore)
+	}
+	fmt.Fprintf(cmd.ErrOrStderr(),
+		"tokenops fmt: saved ~%d tokens (%.0f%% of stdout, %d lines) · recovery: %s\n",
+		estTokens(saved), pct, res.LinesDropped, res.RecoveryPath)
+}
+
+// ensureTrailingNewline appends a newline to non-empty compact output so
+// downstream readers (and the terminal) see a cleanly terminated stream
+// without the stderr stats line colliding on the last row.
+func ensureTrailingNewline(b []byte) []byte {
+	if len(b) == 0 || b[len(b)-1] == '\n' {
+		return b
+	}
+	return append(b, '\n')
+}
+
+// estTokens is the byte→token approximation used for the stats line. It is
+// deliberately conservative (4 bytes/token) and clearly an estimate.
+func estTokens(byteDelta int) int {
+	if byteDelta <= 0 {
+		return 0
+	}
+	return byteDelta / 4
+}

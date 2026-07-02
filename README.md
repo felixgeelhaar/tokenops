@@ -95,6 +95,7 @@ scorecard                         Wedge KPI scorecard
 coverage-debt                     Risk-weighted coverage debt
 eval                              Optimizer eval harness + gate
 replay <id>                       Replay a session through the optimizer
+fmt -- <cmd>                      Run <cmd>, compress its output deterministically before it reaches the agent (full output kept in ~/.tokenops/recovery/)
 ```
 
 Every CLI verb has a matching MCP tool (`tokenops_<name>`).
