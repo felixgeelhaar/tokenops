@@ -161,6 +161,11 @@ func DefaultFormatters() []Formatter {
 		NewTSC(),
 		NewESLint(),
 		NewYarn(),
+		NewMake(),
+		NewMvn(),
+		NewGradle(),
+		NewApt(),
+		NewCurl(),
 	}
 }
 

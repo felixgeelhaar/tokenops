@@ -13,9 +13,10 @@
   would drop one falls back to raw passthrough). Loss is configured per
   command (`optimizer.command_fmt.default` + `overrides`:
   conservative | balanced | aggressive).
-  - Formatter catalog (12): `git status`, `go test`, `npm`, `cargo`,
+  - Formatter catalog (17): `git status`, `go test`, `npm`, `cargo`,
     `pytest`, `docker build`, `kubectl`, `terraform`, `pip` (+`pip3`),
-    `tsc`, `eslint`, `yarn` (+`pnpm`), plus an always-safe generic noise
+    `tsc`, `eslint`, `yarn` (+`pnpm`), `make`, `mvn`, `gradle`,
+    `apt` (+`apt-get`), `curl -v`, plus an always-safe generic noise
     scrub. Formatters can register command aliases.
   - `tokenops fmt bench --corpus <dir>` measures savings over captured
     command outputs; `tokenops fmt hook` emits env-gated shell wrappers
