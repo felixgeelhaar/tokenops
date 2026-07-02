@@ -133,8 +133,10 @@ func emitFmtEvent(ctx context.Context, dbPath string, argv []string, res *fmtRes
 		}
 		dbPath = filepath.Join(home, ".tokenops", "events.db")
 	}
-	if _, err := os.Stat(dbPath); err != nil {
-		return fmt.Errorf("events.db not found (run `tokenops init`): %w", err)
+	// Ensure the parent dir exists; sqlite.Open creates the db + schema
+	// when absent, so an explicit `--emit` works before `tokenops start`.
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0o755); err != nil {
+		return err
 	}
 	store, err := sqlite.Open(ctx, dbPath, sqlite.Options{})
 	if err != nil {
