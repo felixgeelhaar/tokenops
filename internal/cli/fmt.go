@@ -238,8 +238,8 @@ type fmtResult struct {
 	BytesBefore  int
 	BytesAfter   int
 	LinesDropped int
-	Compressed   bool   // net reduction achieved by a command formatter
-	Handled      bool   // a dedicated command formatter ran (not the generic fallback)
+	Compressed   bool // net reduction achieved by a command formatter
+	Handled      bool // a dedicated command formatter ran (not the generic fallback)
 	CriticalKept bool
 	RecoveryPath string
 	RecoveryID   string // basename of RecoveryPath without extension; links learn records
@@ -359,15 +359,15 @@ func printFmtStats(cmd *cobra.Command, res *fmtResult, asJSON bool) {
 	if asJSON {
 		enc := json.NewEncoder(cmd.ErrOrStderr())
 		_ = enc.Encode(map[string]any{
-			"bytes_before":   res.BytesBefore,
-			"bytes_after":    res.BytesAfter,
-			"tokens_saved":   estTokens(res.BytesBefore - res.BytesAfter),
-			"lines_dropped":  res.LinesDropped,
-			"compressed":     res.Compressed,
-			"critical_kept":  res.CriticalKept,
-			"recovery_path":  res.RecoveryPath,
-			"exit_code":      res.ExitCode,
-			"notes":          res.Notes,
+			"bytes_before":  res.BytesBefore,
+			"bytes_after":   res.BytesAfter,
+			"tokens_saved":  estTokens(res.BytesBefore - res.BytesAfter),
+			"lines_dropped": res.LinesDropped,
+			"compressed":    res.Compressed,
+			"critical_kept": res.CriticalKept,
+			"recovery_path": res.RecoveryPath,
+			"exit_code":     res.ExitCode,
+			"notes":         res.Notes,
 		})
 		return
 	}
