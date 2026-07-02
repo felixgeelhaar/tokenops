@@ -190,6 +190,11 @@ type CommandFmtConfig struct {
 	Default string `yaml:"default"`
 	// Overrides maps a command token to its loss level.
 	Overrides map[string]string `yaml:"overrides"`
+	// EmitEvents, when true, makes `tokenops fmt` append an
+	// OptimizationEvent (kind=command_fmt) to the local events store on
+	// each compressed run so the dashboard and scorecard count the
+	// savings. Best-effort: a store error never fails the wrapped command.
+	EmitEvents bool `yaml:"emit_events"`
 }
 
 // RoutingRuleConfig is one "route X to Y" entry. FromModel supports a

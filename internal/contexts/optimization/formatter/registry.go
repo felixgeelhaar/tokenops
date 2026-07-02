@@ -84,6 +84,33 @@ func (r *Registry) Format(argv []string, raw []byte) (Result, bool) {
 	return res, false
 }
 
+// FormatSniff compresses raw when the producing command is unknown — the
+// proxy tool-output plane, where only the text is available. It runs every
+// registered command formatter and picks the one that recognises the
+// content (i.e. did not fall back to the generic scrub) and yields the
+// smallest critical-preserving output. When nothing recognises the content
+// it applies the generic noise scrub. The returned command token names the
+// winning formatter ("" for the generic fallback).
+func (r *Registry) FormatSniff(raw []byte, level LossLevel) (Result, string) {
+	best, _ := generic.Format(raw, level)
+	bestCmd := ""
+	for cmd, f := range r.formatters {
+		res, ok := f.Format(raw, level)
+		if !ok || !res.CriticalKept {
+			continue
+		}
+		// A formatter that fell back to its generic scrub did not
+		// recognise the content; it has no command-specific claim.
+		if strings.Contains(res.Notes, "generic") {
+			continue
+		}
+		if res.BytesAfter < best.BytesAfter {
+			best, bestCmd = res, cmd
+		}
+	}
+	return best, bestCmd
+}
+
 // firstToken returns the command token argv[0] carries, ignoring a leading
 // path (so "/usr/bin/git" keys as "git").
 func firstToken(argv []string) string {
@@ -100,3 +127,25 @@ func firstToken(argv []string) string {
 // generic is the package-level always-safe formatter used as the fallback
 // for unregistered commands.
 var generic = NewGeneric()
+
+// DefaultFormatters returns the built-in command formatter set. It is the
+// single source of truth for the catalog so every plane (the `tokenops fmt`
+// CLI, the proxy tool-output optimizer, the hook generator, the benchmark)
+// compresses with the same formatters. Adding a formatter here enrolls it
+// everywhere.
+func DefaultFormatters() []Formatter {
+	return []Formatter{
+		NewGit(),
+		NewGoTest(),
+		NewNPM(),
+		NewCargo(),
+		NewPytest(),
+		NewDocker(),
+	}
+}
+
+// DefaultRegistry builds a Registry with the default formatter set under the
+// given loss policy.
+func DefaultRegistry(policy LossPolicy) *Registry {
+	return NewRegistry(policy, DefaultFormatters()...)
+}

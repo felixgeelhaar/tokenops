@@ -63,6 +63,7 @@ var domainPackages = []string{
 	// arch-lint sweep below.
 	"github.com/felixgeelhaar/tokenops/internal/contexts/optimization/optimizer",
 	"github.com/felixgeelhaar/tokenops/internal/contexts/optimization/formatter",
+	"github.com/felixgeelhaar/tokenops/internal/contexts/optimization/optimizer/toolfmt",
 	"github.com/felixgeelhaar/tokenops/internal/contexts/optimization/replay",
 	"github.com/felixgeelhaar/tokenops/internal/contexts/governance/scorecard",
 	"github.com/felixgeelhaar/tokenops/internal/contexts/governance/coverdebt",

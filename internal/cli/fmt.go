@@ -13,10 +13,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 
 	"github.com/felixgeelhaar/tokenops/internal/config"
 	"github.com/felixgeelhaar/tokenops/internal/contexts/optimization/formatter"
+	"github.com/felixgeelhaar/tokenops/internal/storage/sqlite"
+	"github.com/felixgeelhaar/tokenops/pkg/eventschema"
 )
 
 // newFmtCmd assembles `tokenops fmt` — the deterministic command-output
@@ -38,6 +41,8 @@ func newFmtCmd(rf *rootFlags) *cobra.Command {
 		quiet      bool
 		rawOnError bool
 		statsJSON  bool
+		emitFlag   bool
+		dbFlag     string
 	)
 	cmd := &cobra.Command{
 		Use:   "fmt [flags] -- <command> [args...]",
@@ -82,6 +87,14 @@ Examples:
 			_, _ = cmd.OutOrStdout().Write(res.Stdout)
 			_, _ = cmd.ErrOrStderr().Write(res.Stderr)
 
+			// Emit an OptimizationEvent so the dashboard/scorecard count
+			// the savings. Opt-in (flag or config), best-effort.
+			if (emitFlag || cfg.Optimizer.CommandFmt.EmitEvents) && res.Compressed {
+				if err := emitFmtEvent(cmd.Context(), dbFlag, args, res); err != nil && !quiet {
+					fmt.Fprintf(cmd.ErrOrStderr(), "warning: fmt event not recorded: %v\n", err)
+				}
+			}
+
 			if !quiet {
 				printFmtStats(cmd, res, statsJSON)
 			}
@@ -99,16 +112,75 @@ Examples:
 	cmd.Flags().BoolVar(&quiet, "quiet", false, "suppress the savings/recovery stats line")
 	cmd.Flags().BoolVar(&rawOnError, "raw-on-error", true, "forward raw (uncompressed) stdout when the command exits non-zero")
 	cmd.Flags().BoolVar(&statsJSON, "stats-json", false, "emit the stats line as JSON on stderr")
+	cmd.Flags().BoolVar(&emitFlag, "emit", false, "append an OptimizationEvent to the events store (also set via config command_fmt.emit_events)")
+	cmd.Flags().StringVar(&dbFlag, "db", "", "events.db path for --emit (defaults to ~/.tokenops/events.db)")
+	cmd.AddCommand(newFmtBenchCmd())
+	cmd.AddCommand(newFmtHookCmd())
 	return cmd
 }
 
-// defaultFormatters returns the built-in formatter set. Adding a formatter
-// here makes it available to the CLI and (later) the proxy optimizer.
-func defaultFormatters() []formatter.Formatter {
-	return []formatter.Formatter{
-		formatter.NewGit(),
-		formatter.NewGoTest(),
+// emitFmtEvent appends an OptimizationEvent (kind=command_fmt) to the local
+// events store so the dashboard and scorecard attribute the savings. It is
+// best-effort: a missing store or write error is returned for an optional
+// warning but never aborts the wrapped command. The workflow/agent id is
+// stamped "fmt:<command>" so `group=agent` can show which commands compress
+// most.
+func emitFmtEvent(ctx context.Context, dbPath string, argv []string, res *fmtResult) error {
+	if dbPath == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return err
+		}
+		dbPath = filepath.Join(home, ".tokenops", "events.db")
 	}
+	if _, err := os.Stat(dbPath); err != nil {
+		return fmt.Errorf("events.db not found (run `tokenops init`): %w", err)
+	}
+	store, err := sqlite.Open(ctx, dbPath, sqlite.Options{})
+	if err != nil {
+		return err
+	}
+	defer func() { _ = store.Close() }()
+
+	command := firstArgvToken(argv)
+	saved := int64(estTokens(res.BytesBefore - res.BytesAfter))
+	env := &eventschema.Envelope{
+		ID:            uuid.NewString(),
+		SchemaVersion: eventschema.SchemaVersion,
+		Type:          eventschema.EventTypeOptimization,
+		Timestamp:     time.Now().UTC(),
+		Source:        "tokenops-fmt",
+		Payload: &eventschema.OptimizationEvent{
+			Kind:                   eventschema.OptimizationTypeCommandFmt,
+			Mode:                   eventschema.OptimizationModeInteractive,
+			EstimatedSavingsTokens: saved,
+			QualityScore:           1.0, // deterministic, critical-line-preserving
+			Decision:               eventschema.OptimizationDecisionApplied,
+			Reason:                 res.Notes,
+			WorkflowID:             "fmt:" + command,
+			AgentID:                "fmt:" + command,
+		},
+	}
+	return store.Append(ctx, env)
+}
+
+// firstArgvToken returns argv[0]'s base name (path stripped).
+func firstArgvToken(argv []string) string {
+	if len(argv) == 0 {
+		return ""
+	}
+	t := argv[0]
+	if i := strings.LastIndexAny(t, "/\\"); i >= 0 {
+		t = t[i+1:]
+	}
+	return t
+}
+
+// defaultFormatters returns the built-in formatter set (shared source of
+// truth in the formatter package so the CLI, proxy optimizer, hook, and
+// benchmark all use the same catalog).
+func defaultFormatters() []formatter.Formatter {
+	return formatter.DefaultFormatters()
 }
 
 // buildLossPolicy maps the config strings into the domain LossPolicy and

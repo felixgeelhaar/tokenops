@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Added
+
+- **Deterministic command-output compression** (`tokenops fmt`): wraps a
+  command, compresses its stdout with a per-command formatter before the
+  output enters the agent context, and preserves the full output in
+  `~/.tokenops/recovery/`. Two invariants hold at every loss level:
+  determinism (pure `(raw, level)` function) and critical-line survival
+  (errors / failures / changed state are never dropped — a formatter that
+  would drop one falls back to raw passthrough). Loss is configured per
+  command (`optimizer.command_fmt.default` + `overrides`:
+  conservative | balanced | aggressive).
+  - Formatter catalog: `git status`, `go test`, `npm`, `cargo`, `pytest`,
+    `docker build`, plus an always-safe generic noise scrub.
+  - `tokenops fmt bench --corpus <dir>` measures savings over captured
+    command outputs; `tokenops fmt hook` emits env-gated shell wrappers
+    (RTK-style auto-rewrite, opt-in via `TOKENOPS_FMT=1`).
+  - `--emit` (or `command_fmt.emit_events`) records an OptimizationEvent
+    (kind `command_fmt`) so the dashboard and scorecard count the savings.
+  - Proxy plane: a `command_fmt` optimizer compresses tool-output blocks
+    (Anthropic `tool_result`, OpenAI `role:tool`) in the request body via
+    content-sniffing, so agents without the shell hook still benefit.
+
 ## 0.25.1 - 2026-06-12
 
 ### Security
