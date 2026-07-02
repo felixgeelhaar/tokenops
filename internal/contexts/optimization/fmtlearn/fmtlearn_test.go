@@ -18,7 +18,7 @@ func access(id, cmd string) Record {
 }
 
 func TestAnalyze_NextFormattersRankedByRawBytes(t *testing.T) {
-	var recs []Record
+	recs := make([]Record, 0, 18)
 	// "make": 6 generic runs (no dedicated formatter), large raw -> top candidate.
 	for i := range 6 {
 		recs = append(recs, compress("m"+string(rune('0'+i)), "make", 5000, 100, false, true))
@@ -47,7 +47,7 @@ func TestAnalyze_NextFormattersRankedByRawBytes(t *testing.T) {
 }
 
 func TestAnalyze_CriticalMissFromReAccess(t *testing.T) {
-	var recs []Record
+	recs := make([]Record, 0, 13)
 	// docker: 10 handled runs, 3 re-accessed -> access rate 0.3 > ceiling.
 	for i := range 10 {
 		recs = append(recs, compress("d"+string(rune('0'+i)), "docker", 1000, 300, true, false))
@@ -75,10 +75,11 @@ func TestAnalyze_CriticalMissFromReAccess(t *testing.T) {
 func TestAnalyze_AccessAttributedByID(t *testing.T) {
 	// An access row with no Command but a known compress ID must attribute
 	// to that compression's command.
-	recs := []Record{
+	recs := make([]Record, 0, 7)
+	recs = append(recs,
 		compress("x1", "terraform", 2000, 500, true, false),
-		{Type: RecordAccess, ID: "x1", TS: time.Unix(0, 0)}, // no Command field
-	}
+		Record{Type: RecordAccess, ID: "x1", TS: time.Unix(0, 0)}, // no Command field
+	)
 	// Bump runs to clear MinRuns so the stat surfaces in Commands anyway.
 	for i := range 5 {
 		recs = append(recs, compress("t"+string(rune('0'+i)), "terraform", 2000, 500, true, false))
@@ -96,7 +97,7 @@ func TestAnalyze_AccessAttributedByID(t *testing.T) {
 }
 
 func TestAnalyze_RaiseHintWhenNeverReaccessed(t *testing.T) {
-	var recs []Record
+	recs := make([]Record, 0, 20)
 	for i := range 20 {
 		recs = append(recs, compress("g"+string(rune('a'+i)), "git", 800, 300, true, false))
 	}

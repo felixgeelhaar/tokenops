@@ -110,11 +110,12 @@ func isTerraformProviderChatter(s string) bool {
 // legend ("~ update in-place") that shares the marker prefix but has no
 // assignment.
 func isTerraformChangedAttr(s string) bool {
-	if !(strings.HasPrefix(s, "+ ") ||
+	hasMarker := strings.HasPrefix(s, "+ ") ||
 		strings.HasPrefix(s, "- ") ||
 		strings.HasPrefix(s, "~ ") ||
 		strings.HasPrefix(s, "-/+ ") ||
-		strings.HasPrefix(s, "+/- ")) {
+		strings.HasPrefix(s, "+/- ")
+	if !hasMarker {
 		return false
 	}
 	return strings.Contains(s, "=")

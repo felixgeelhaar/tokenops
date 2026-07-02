@@ -1,7 +1,7 @@
-// Registry maps command tokens to Formatters and applies the per-command
-// loss policy. It is the single entry point the CLI wrapper and the proxy
-// optimizer both call, so loss configuration and formatter dispatch live in
-// one place.
+// Package formatter registry: maps command tokens to Formatters and applies
+// the per-command loss policy. It is the single entry point the CLI wrapper
+// and the proxy optimizer both call, so loss configuration and formatter
+// dispatch live in one place.
 package formatter
 
 import "strings"

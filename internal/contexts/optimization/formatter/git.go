@@ -91,14 +91,15 @@ func (g *Git) Format(raw []byte, level LossLevel) (Result, bool) {
 		}
 		if inUntracked {
 			// A blank line or a new section header ends the block.
-			if t == "" || strings.HasSuffix(t, ":") && !strings.Contains(t, "/") {
+			switch {
+			case t == "" || strings.HasSuffix(t, ":") && !strings.Contains(t, "/"):
 				inUntracked = false
-			} else if isGitHint(t) {
+			case isGitHint(t):
 				// The parenthetical guidance under the header is noise at
 				// Balanced+ regardless; drop it before collecting entries.
 				dropped++
 				continue
-			} else if level == LossAggressive {
+			case level == LossAggressive:
 				// Aggressive: gather untracked entries; decide whether to
 				// collapse after we know how many there are.
 				untracked = append(untracked, line)
