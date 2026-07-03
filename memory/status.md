@@ -2,15 +2,13 @@
 updated: 2026-07-03
 ---
 ## Current State
-tokenops is a local-first MCP server + CLI for flat-rate AI subscriptions (rate-limit prediction, spend analytics) that ships `tokenops fmt` — a deterministic command-output compression subsystem now at **51 formatters / 57 command tokens**, user-extensible via config, self-tuning learn loop, MCP-exposed. Latest release **v0.30.0** — adds the self-wiring JSONL analyzer (`fmt analyze`/`learn` mine Claude Code logs), a Read-side trimming diagnostic, and `read-guard` (a Claude Code PreToolUse hook that reclaims redundant re-reads). read-guard installed in OBSERVE mode on this machine.
+tokenops is a local-first MCP server + CLI for flat-rate AI subscriptions (rate-limit prediction, spend analytics). Repo lives at **github.com/klarlabs-studio/tokenops**, module path **go.klarlabs.de/tokenops** (vanity); brew tap unchanged (`felixgeelhaar/tap/tokenops`). Latest release **v0.33.0**. Instruments AI usage on three planes: **proxy** (now **13 providers** — openai/anthropic/gemini/mistral/cohere + the OpenAI-compatible fleet), **passive read** (Claude Code + Codex JSONL, and now **opencode via SQLite**), and **MCP** (`tokenops serve`). Also ships `tokenops fmt` (deterministic command-output compression) and `read-guard` (installed here in ACTIVE mode). Honest boundaries: Gemini CLI has no local token log (proxy only), Bedrock needs SigV4 (no auth hook), hosted agents (Jules) out of reach.
 
 ## Last Session Summary
-Removed caveman (proved <1% of tokens on real data). Built the self-wiring JSONL analyzer (fmt analyze/learn), the Read-side diagnostic, and read-guard (Claude Code PreToolUse hook). Released v0.30.0 + v0.30.1; installed read-guard in observe mode. Honest finding: for this user, re-read waste is ~0 reclaimable (already reads via ranges) — the analyzers measured it rather than assuming.
-
+Expanded proxy providers 4 → 13 (OpenAI-compatible framework via `NewOpenAICompatible` + Cohere with its own normalizer). Built the opencode SQLite passive reader (verified 48,540 real turns). Hardened `provider set` (validation + presets). Added integration coverage docs + README matrix. Fixed the v0.32.0 goreleaser 307 (stale owner) and released **v0.33.0** cleanly. Verified **mnemos** vanity/module wiring end-to-end (`go get go.klarlabs.de/mnemos@latest` → v0.33.0, live).
 
 ## Next Session Should
-Run `tokenops read-guard stats` — if reclaimable is still ~0 across more sessions, leave observe (or remove the hook); do NOT flip to active (nothing to reclaim). Otherwise go active. Then the fmt subsystem work is effectively complete; pick a new direction.
-
+Provider/integration work is complete and released. Pick a new direction — likely candidates: (a) a `pricing.path` override example for the multiplexers (fireworks/together/openrouter), (b) a Bedrock SigV4 auth-hook if remote/enterprise providers matter, or (c) unrelated new work. Nothing is blocking.
 
 ## Blocked / Waiting
 - BLOCKED: fmt learn threshold tuning — needs real usage telemetry before empirical tuning.
