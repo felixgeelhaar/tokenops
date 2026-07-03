@@ -3,8 +3,8 @@ updated: 2026-07-03
 ---
 ## [OPEN]
 
-## [BLOCKED]
-- fmt learn threshold tuning (MinRuns=5, GenericRatioFloor=0.5, AccessRateCeiling=0.10, AccessRateFloor=0.01) — defaults reviewed and sane; genuine empirical tuning is blocked on real usage telemetry accruing in ~/.tokenops/recovery/index.jsonl. Revisit when data exists.
+## [OPEN]
+- fmt learn threshold tuning — telemetry now STARTING to accrue (dogfooded v0.29.0: 14 runs, learn loop produced a `go raise` hint + `printf` next-formatter candidate). Was BLOCKED on data; now unblocking. Revisit once a realistic volume of real command runs exists; verify hints stay sensible (printf was a spurious test artifact — expected, human filters).
 
 ## [WAITING]
 
