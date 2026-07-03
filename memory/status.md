@@ -8,7 +8,8 @@ tokenops is a local-first MCP server + CLI for flat-rate AI subscriptions (rate-
 Built `tokenops fmt` (5 releases v0.26.0→v0.28.1, 4 PRs). Then: validated the proxy plane (default-pipeline test), committed Agent OS memory, and did the catalog fast-follow — +oc/nomad/packer/gem/swift/nix (51 formatters). vault deferred (secret-bearing output).
 
 ## Next Session Should
-Check accumulated fmt telemetry (`tokenops fmt learn`) from dogfooding — if enough data, tune learn thresholds. Otherwise build a config-mutating MCP tool, or continue catalog on demand.
+Check `tokenops read-guard stats` — if the observe-mode reclaimable-token numbers look good over a few real sessions, flip the hook to --mode active in ~/.claude/settings.json to actually reclaim. Otherwise continue on demand.
+
 
 ## Blocked / Waiting
 - BLOCKED: fmt learn threshold tuning — needs real usage telemetry before empirical tuning.
