@@ -92,7 +92,7 @@ Run this exact sequence to avoid re-shoots:
 >
 > What's in for v0.9: empty-state scorecard with a first-week checklist instead of a useless F grade; demo-data isolation so seeded events don't contaminate real rollups; hot-reload on `tokenops plan set` so MCP doesn't need a manual reconnect.
 >
-> Repo: https://github.com/felixgeelhaar/tokenops
+> Repo: https://github.com/klarlabs-studio/tokenops
 >
 > Looking for: 5 people on Claude Max 5x/20x or ChatGPT Plus who'd hop on a 15-minute discovery call. Reply or DM @felixgeelhaar.
 
