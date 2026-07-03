@@ -12,5 +12,4 @@ updated: 2026-07-03
 - 2026-07-03: Validate command_fmt proxy plane — DONE. Added TestDefaultPipeline_CommandFmtCompressesToolOutput: a realistic Anthropic tool_result runs through the DEFAULT pipeline and surfaces a command_fmt event with real savings. (Live-traffic validation still ideal but the wiring is proven.)
 - 2026-07-03: Commit vs gitignore memory system — DECIDED: commit (cross-machine continuity; reversible). Committed with the pipeline test.
 
-## [WAITING]
 - read-guard: installed in OBSERVE mode (~/.claude/settings.json). Waiting on the user to watch `tokenops read-guard stats` over a few sessions, then decide whether to flip to --mode active. Backup: ~/.claude/settings.json.pre-readguard.bak.
