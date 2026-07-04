@@ -1,14 +1,15 @@
 ---
-updated: 2026-07-03
+updated: 2026-07-04
 ---
 ## Current State
-tokenops is a local-first MCP server + CLI for flat-rate AI subscriptions (rate-limit prediction, spend analytics). Repo lives at **github.com/klarlabs-studio/tokenops**, module path **go.klarlabs.de/tokenops** (vanity); brew tap unchanged (`felixgeelhaar/tap/tokenops`). Latest release **v0.33.0**. Instruments AI usage on three planes: **proxy** (now **13 providers** — openai/anthropic/gemini/mistral/cohere + the OpenAI-compatible fleet), **passive read** (Claude Code + Codex JSONL, and now **opencode via SQLite**), and **MCP** (`tokenops serve`). Also ships `tokenops fmt` (deterministic command-output compression) and `read-guard` (installed here in ACTIVE mode). Honest boundaries: Gemini CLI has no local token log (proxy only), Bedrock needs SigV4 (no auth hook), hosted agents (Jules) out of reach.
+tokenops is a local-first MCP server + CLI for flat-rate AI subscriptions (rate-limit prediction, spend analytics). Repo `github.com/klarlabs-studio/tokenops`, module `go.klarlabs.de/tokenops` (vanity); brew tap `felixgeelhaar/tap/tokenops`. Latest RELEASE is still **v0.33.0** — the post-v0.33.0 work on `main` (through commit c07cdd0) is UNRELEASED. Three planes: **proxy** (now **17 providers** — +Ollama/LM Studio/LiteLLM/Vercel), **passive read** (Claude Code/Codex JSONL, opencode SQLite, quota scrapers), **MCP**. OpenAI now uses an **exact tiktoken tokenizer** (o200k_base, offline); others heuristic. The core prediction now reads the **vendor's own rate-limit meter** (not a message count) across session_budget + plan_headroom (window + monthly). read-guard is ACTIVE + agent-scoped.
 
 ## Last Session Summary
-Expanded proxy providers 4 → 13 (OpenAI-compatible framework via `NewOpenAICompatible` + Cohere with its own normalizer). Built the opencode SQLite passive reader (verified 48,540 real turns). Hardened `provider set` (validation + presets). Added integration coverage docs + README matrix. Fixed the v0.32.0 goreleaser 307 (stale owner) and released **v0.33.0** cleanly. Verified **mnemos** vanity/module wiring end-to-end (`go get go.klarlabs.de/mnemos@latest` → v0.33.0, live).
+Big session. read-guard cross-agent fix (agent_id-scoped ledger). Ran a 4-agent review → delivered all 4 chosen directions: (1) core prediction now reads the authoritative vendor quota % — the headline gap; (2) exact tiktoken OpenAI tokenizer; (3) optimizer honesty (real savings estimate, retrieval_prune scored below the gate, dedupe doc de-hyped); (4) 13→17 providers. Then follow-ups: plan_headroom window + monthly authoritative (Copilot/Cursor get a real risk), dedupe footgun hardened. All CI-green through c07cdd0.
 
 ## Next Session Should
-Provider/integration work is complete and released. Pick a new direction — likely candidates: (a) a `pricing.path` override example for the multiplexers (fireworks/together/openrouter), (b) a Bedrock SigV4 auth-hook if remote/enterprise providers matter, or (c) unrelated new work. Nothing is blocking.
+Consider cutting **v0.34.0** — a lot of unreleased value sits on main (17 providers, exact tokenizer, the authoritative-meter prediction rewrite, optimizer honesty). Verify the changelog covers it, then tag. Optionally: user live-verifies a provider via the hand-off script; or tackle plan-catalog tiers (need sourced caps) / Bedrock SigV4.
 
 ## Blocked / Waiting
 - BLOCKED: fmt learn threshold tuning — needs real usage telemetry before empirical tuning.
+- WAITING: user to live-verify an OpenAI-compat provider (hand-off script provided); would flip 9 providers from unit- to live-verified.
