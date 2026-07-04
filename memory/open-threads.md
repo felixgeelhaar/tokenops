@@ -21,3 +21,6 @@ updated: 2026-07-03
 - 2026-07-04: Provider coverage 13→17 (local/gateway). Plan-catalog tiers DEFERRED (need sourced caps).
 - 2026-07-04: v0.34.0 RELEASED (assets + brew 0.34.0). Everything from the review + follow-ups shipped.
 - 2026-07-04: Over-time charts — built in tokenops (`fmt analyze --svg`) + embedded composition + tokens in the 800:1 blog post; klarlabs site deployed. Kept 800:1 (no number on chart); charts framed as recent-weeks zooms.
+- 2026-07-04: "six months" prose loose end — FIXED to "several weeks" (verified events store spans ~5-6 weeks; token numbers all confirmed).
+- 2026-07-04: Second blog post "The tool was guessing" — WRITTEN + PUBLISHED (live, deployed). Self-critical rate-limit-bug story.
+- 2026-07-04: `--charts` selector + v0.35.0 RELEASED (assets + brew 0.35.0). periodLabel axis-label bug fixed + live blog charts regenerated.
