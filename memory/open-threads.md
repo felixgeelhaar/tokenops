@@ -19,3 +19,5 @@ updated: 2026-07-03
 - 2026-07-04: Tokenizer accuracy — exact tiktoken OpenAI tokenizer wired (others still heuristic).
 - 2026-07-04: Optimizer honesty (canary estimate, retrieval_prune quality, dedupe doc) — FIXED.
 - 2026-07-04: Provider coverage 13→17 (local/gateway). Plan-catalog tiers DEFERRED (need sourced caps).
+- 2026-07-04: v0.34.0 RELEASED (assets + brew 0.34.0). Everything from the review + follow-ups shipped.
+- 2026-07-04: Over-time charts — built in tokenops (`fmt analyze --svg`) + embedded composition + tokens in the 800:1 blog post; klarlabs site deployed. Kept 800:1 (no number on chart); charts framed as recent-weeks zooms.
