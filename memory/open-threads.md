@@ -2,6 +2,7 @@
 updated: 2026-07-07
 ---
 ## [OPEN]
+- CI path-filter gap: the Go CI only triggers on `**/*.go`, so a `pricing.yaml` (embedded catalog) or other non-Go change merges WITHOUT CI (#145 sonnet-5 showed 'no checks reported'). Verified locally before merge, but the filter should include `pricing.yaml`/testdata so catalog edits always get CI.
 - ADR 0002 Phase 3: additional pricing sources (OpenRouter /models, vendor-page scrape, curated) drop into the `Source` interface + an optional auto-refresh poller (mirrors vendor-usage pollers). Phases 1+2 shipped in v0.38.0; Phase 3 when desired.
 - coach-hook Phase 2+ (ADR 0001): SessionStart spend brief, UserPromptSubmit budget guardrail (warn/block), PreCompact/SessionEnd wrap-up, weekly scorecard digest, Codex/Cursor parity for the Stop signal. Each independently opt-in + shippable. Phase 1 (Stop nudge + hooks install) + Phase 1.1 (cumulative $-budget graduated alerts, default $50) shipped in v0.36.0 and installed live in ~/.claude/settings.json (both hooks on the homebrew binary, no mismatch; fires from turn 1 of NEXT sessions).
 - fmt learn threshold tuning — telemetry now STARTING to accrue (dogfooded v0.29.0: 14 runs, learn loop produced a `go raise` hint + `printf` next-formatter candidate). Was BLOCKED on data; now unblocking. Revisit once a realistic volume of real command runs exists; verify hints stay sensible (printf was a spurious test artifact — expected, human filters).
