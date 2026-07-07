@@ -1,6 +1,6 @@
 # ADR 0002 — Researched, effective-dated pricing snapshots
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-07-07
 - **Deciders:** TokenOps maintainers
 - **Related:** `internal/contexts/spend/spend` (pricing catalog + engine), ADR 0001, the "800:1 / The tool was guessing" honesty ethos
