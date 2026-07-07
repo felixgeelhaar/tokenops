@@ -2,11 +2,13 @@
 updated: 2026-07-07
 ---
 ## [OPEN]
+- ADR 0002 Phase 3: additional pricing sources (OpenRouter /models, vendor-page scrape, curated) drop into the `Source` interface + an optional auto-refresh poller (mirrors vendor-usage pollers). Phases 1+2 shipped in v0.38.0; Phase 3 when desired.
 - coach-hook Phase 2+ (ADR 0001): SessionStart spend brief, UserPromptSubmit budget guardrail (warn/block), PreCompact/SessionEnd wrap-up, weekly scorecard digest, Codex/Cursor parity for the Stop signal. Each independently opt-in + shippable. Phase 1 (Stop nudge + hooks install) + Phase 1.1 (cumulative $-budget graduated alerts, default $50) shipped in v0.36.0 and installed live in ~/.claude/settings.json (both hooks on the homebrew binary, no mismatch; fires from turn 1 of NEXT sessions).
 - fmt learn threshold tuning — telemetry now STARTING to accrue (dogfooded v0.29.0: 14 runs, learn loop produced a `go raise` hint + `printf` next-formatter candidate). Was BLOCKED on data; now unblocking. Revisit once a realistic volume of real command runs exists; verify hints stay sensible (printf was a spurious test artifact — expected, human filters).
 - read-guard: ACTIVE mode (v0.30.1, ~/.claude/settings.json; backups .pre-readguard.bak + .pre-active.bak). Flipped observe→active after real reclaimable appeared: at 101 reads/3 sessions, 45 repeat reads = 4 reclaimable (~5.4k tok) + 39 ranged + 2 post-edit. Watching `tokenops read-guard stats` — the `blocked`/`reclaimed` line should climb over more sessions. If the agent ever fights a needed block, revert to observe or restore a backup.
 
 ## [WAITING]
+- 2026-07-07: operator to run `tokenops pricing refresh` against the LIVE LiteLLM feed (sandbox blocks outbound net) and paste the diff — closes the live research loop. Also: confirm fable-5's real rate ($10/$50/$1.00 is internally consistent but unverified).
 - 2026-07-04: User to live-verify an OpenAI-compat provider (OpenRouter) via the hand-off script — env sandbox blocks reading opencode's key + external call from my side. Would flip 9 new providers from unit-verified to live-verified.
 
 ## Resolved
