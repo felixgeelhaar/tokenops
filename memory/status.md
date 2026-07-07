@@ -2,7 +2,7 @@
 updated: 2026-07-07
 ---
 ## Current State
-tokenops is a local-first MCP server + CLI for flat-rate AI subscriptions (rate-limit prediction, spend analytics). Repo `github.com/klarlabs-studio/tokenops`, module `go.klarlabs.de/tokenops` (vanity); brew tap `felixgeelhaar/tap/tokenops`. Latest release **v0.36.0** (2026-07-07); `main` is clean. **Opt-in usage-coaching hooks (ADR 0001)** shipped: a `coach-hook` Claude Code **Stop** hook that tracks cumulative per-session **$-budget** and fires graduated latched alerts (50/75/100% + over-budget escalation, default $50) nudging `/compact`; wired via `tokenops hooks install`. Joins `read-guard` (PreToolUse dedup) as the second Claude Code hook. Three planes: **proxy** (**17 providers**), **passive read** (Claude Code/Codex JSONL, opencode SQLite, quota scrapers), **MCP**. OpenAI uses an **exact tiktoken tokenizer**. Core prediction reads the **vendor's own rate-limit meter** across session_budget + plan_headroom. read-guard ACTIVE + agent-scoped. `fmt analyze --svg` emits bar + **weekly over-time charts**, selectable via **`--charts`**. Two klarlabs blog posts live: "800 to 1" and "The tool was guessing" (both from real tokenops output/commits).
+tokenops is a local-first MCP server + CLI for flat-rate AI subscriptions (rate-limit prediction, spend analytics). Repo `github.com/klarlabs-studio/tokenops`, module `go.klarlabs.de/tokenops` (vanity); brew tap `felixgeelhaar/tap/tokenops`. Latest release **v0.37.0** (2026-07-07); `main` is clean. **`tokenops status` now flags stale ingestion** — an enabled vendor-usage source with 0 events in 48h → soft `warnings` + remediation, `state` ready→degraded (v0.37.0, #131). **Opt-in usage-coaching hooks (ADR 0001)** shipped: a `coach-hook` Claude Code **Stop** hook that tracks cumulative per-session **$-budget** and fires graduated latched alerts (50/75/100% + over-budget escalation, default $50) nudging `/compact`; wired via `tokenops hooks install`. Joins `read-guard` (PreToolUse dedup) as the second Claude Code hook. Three planes: **proxy** (**17 providers**), **passive read** (Claude Code/Codex JSONL, opencode SQLite, quota scrapers), **MCP**. OpenAI uses an **exact tiktoken tokenizer**. Core prediction reads the **vendor's own rate-limit meter** across session_budget + plan_headroom. read-guard ACTIVE + agent-scoped. `fmt analyze --svg` emits bar + **weekly over-time charts**, selectable via **`--charts`**. Two klarlabs blog posts live: "800 to 1" and "The tool was guessing" (both from real tokenops output/commits).
 
 ## Last Session Summary
 2026-07-07: "look at our usage" → shipped a feature. Parsed real transcripts:
@@ -14,7 +14,10 @@ coaching hooks), built the `coach-hook` Stop nudge + `hooks install` (#127), the
 replaced the flat per-turn threshold with a **cumulative $-budget + graduated
 alerts** (#128, the GitHub-Actions-budget idea — per-turn missed long-flat
 sessions). Released **v0.36.0** (#129), brew-upgraded, both hooks unified on the
-homebrew binary (no mismatch). See sessions/2026-07-07.md.
+homebrew binary (no mismatch). Then (Session 2) closed the "tokenops undercounts
+its own usage" thread with a **stale-ingestion health warning** in `tokenops
+status` (#131), released **v0.37.0** (#132), brew-upgraded + verified live (flags
+`anthropic-cookie`, correctly not `claude_code_jsonl`). See sessions/2026-07-07.md.
 
 ## Next Session Should
 Nothing pressing — clean stopping point. Optional: Phase 2+ of ADR 0001 —
