@@ -8,10 +8,10 @@ updated: 2026-07-07
 - read-guard: ACTIVE mode (v0.30.1, ~/.claude/settings.json; backups .pre-readguard.bak + .pre-active.bak). Flipped observe→active after real reclaimable appeared: at 101 reads/3 sessions, 45 repeat reads = 4 reclaimable (~5.4k tok) + 39 ranged + 2 post-edit. Watching `tokenops read-guard stats` — the `blocked`/`reclaimed` line should climb over more sessions. If the agent ever fights a needed block, revert to observe or restore a backup.
 
 ## [WAITING]
-- 2026-07-07: operator to run `tokenops pricing refresh` against the LIVE LiteLLM feed (sandbox blocks outbound net) and paste the diff — closes the live research loop. Also: confirm fable-5's real rate ($10/$50/$1.00 is internally consistent but unverified).
 - 2026-07-04: User to live-verify an OpenAI-compat provider (OpenRouter) via the hand-off script — env sandbox blocks reading opencode's key + external call from my side. Would flip 9 new providers from unit-verified to live-verified.
 
 ## Resolved
+- 2026-07-07: `pricing refresh` against live LiteLLM — DONE (network works from the machine; the sandbox caution was wrong). It CAUGHT the wrong Opus 'correction' → reverted to $5/$25/$0.50 (v0.39.0). Snapshot adopted. fable-5 is NOT in LiteLLM's list (env-specific model), so its baseline $10/$50/$1.00 stays unconfirmed by the source — still worth operator confirmation, but low-stakes (small usage).
 - 2026-07-07: Stale-ingestion health warning — DONE (#131, ships in v0.37.0). `tokenops status` (CLI + MCP) now flags an ENABLED vendor-usage source with 0 events in 48h as a soft `warnings` + remediation next-action, degrading `state` ready→degraded (ready:true). Closes the "the measurement tool wasn't measuring" gap. `config.CheckStaleIngestion` + shared `VendorUsageSources()` helper. (Provider-unset → $0 was already covered by the `providers_unconfigured` blocker.)
 - 2026-07-03: Validate command_fmt proxy plane — DONE. Added TestDefaultPipeline_CommandFmtCompressesToolOutput: a realistic Anthropic tool_result runs through the DEFAULT pipeline and surfaces a command_fmt event with real savings. (Live-traffic validation still ideal but the wiring is proven.)
 - 2026-07-03: Commit vs gitignore memory system — DECIDED: commit (cross-machine continuity; reversible). Committed with the pipeline test.
