@@ -1,9 +1,8 @@
 ---
-updated: 2026-07-03
+updated: 2026-07-07
 ---
 ## [OPEN]
 - coach-hook Phase 2+ (ADR 0001): SessionStart spend brief, UserPromptSubmit budget guardrail (warn/block), PreCompact/SessionEnd wrap-up, weekly scorecard digest, Codex/Cursor parity for the Stop signal. Each independently opt-in + shippable. Phase 1 (Stop nudge + hooks install) + Phase 1.1 (cumulative $-budget graduated alerts, default $50) shipped in v0.36.0 and installed live in ~/.claude/settings.json (both hooks on the homebrew binary, no mismatch; fires from turn 1 of NEXT sessions).
-- tokenops undercounts its OWN usage when the provider is unset (cost → $0, state degraded) or the claude_code_jsonl poller stalls (idle since ~June 30 this session) — should the tool surface a "your ingestion is stale / provider unset" health warning instead of silently returning $0? The measurement tool wasn't measuring.
 - fmt learn threshold tuning — telemetry now STARTING to accrue (dogfooded v0.29.0: 14 runs, learn loop produced a `go raise` hint + `printf` next-formatter candidate). Was BLOCKED on data; now unblocking. Revisit once a realistic volume of real command runs exists; verify hints stay sensible (printf was a spurious test artifact — expected, human filters).
 - read-guard: ACTIVE mode (v0.30.1, ~/.claude/settings.json; backups .pre-readguard.bak + .pre-active.bak). Flipped observe→active after real reclaimable appeared: at 101 reads/3 sessions, 45 repeat reads = 4 reclaimable (~5.4k tok) + 39 ranged + 2 post-edit. Watching `tokenops read-guard stats` — the `blocked`/`reclaimed` line should climb over more sessions. If the agent ever fights a needed block, revert to observe or restore a backup.
 
@@ -11,6 +10,7 @@ updated: 2026-07-03
 - 2026-07-04: User to live-verify an OpenAI-compat provider (OpenRouter) via the hand-off script — env sandbox blocks reading opencode's key + external call from my side. Would flip 9 new providers from unit-verified to live-verified.
 
 ## Resolved
+- 2026-07-07: Stale-ingestion health warning — DONE (#131, ships in v0.37.0). `tokenops status` (CLI + MCP) now flags an ENABLED vendor-usage source with 0 events in 48h as a soft `warnings` + remediation next-action, degrading `state` ready→degraded (ready:true). Closes the "the measurement tool wasn't measuring" gap. `config.CheckStaleIngestion` + shared `VendorUsageSources()` helper. (Provider-unset → $0 was already covered by the `providers_unconfigured` blocker.)
 - 2026-07-03: Validate command_fmt proxy plane — DONE. Added TestDefaultPipeline_CommandFmtCompressesToolOutput: a realistic Anthropic tool_result runs through the DEFAULT pipeline and surfaces a command_fmt event with real savings. (Live-traffic validation still ideal but the wiring is proven.)
 - 2026-07-03: Commit vs gitignore memory system — DECIDED: commit (cross-machine continuity; reversible). Committed with the pipeline test.
 - 2026-07-03: Move tokenops to klarlabs-studio — DONE. Repo transferred, module → go.klarlabs.de/tokenops (vanity), blog links updated, v0.32.0 goreleaser 307 (stale release owner) fixed.
