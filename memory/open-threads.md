@@ -13,6 +13,7 @@ updated: 2026-07-07
 - 2026-07-04: User to live-verify an OpenAI-compat provider (OpenRouter) via the hand-off script — env sandbox blocks reading opencode's key + external call from my side. Would flip 9 new providers from unit-verified to live-verified.
 
 ## Resolved
+- 2026-07-08: pricing show/diff pin-awareness — DONE (#152). Both render the raw snapshot, so pinned rows now carry a [pinned] marker + a legend clarifying the cost engine uses the baseline (and warning not to 'correct' the baseline toward the shown drift). PinnedSnapshotKeys() translates catalog pin keys into the snapshot key space. Presentational only.
 - 2026-07-08: Snapshot-vs-baseline precedence — RESOLVED via verified-row pinning (#151). Confirmed the effective engine let adopted LiteLLM snapshots override the vendor-verified baseline (deepseek-chat $0.14→$0.28, mistral-small $0.15→$0.06 at runtime). `verified: true` rows are now stripped from snapshot overrides so the baseline wins; unpinned rows still auto-adopt. Effective-engine test proves it.
 - 2026-07-08: Catalog drift from the all-provider refresh — RESOLVED. Every row vendor-cross-checked; Mistral/DeepSeek/o1/grok-3 corrected (#149), two adapter false-drift bugs fixed (#150). Residual diff is now pure LiteLLM staleness, not catalog error. `pricing lint` clean over 300 models.
 - 2026-07-07: `pricing refresh` against live LiteLLM — DONE (network works from the machine; the sandbox caution was wrong). It CAUGHT the wrong Opus 'correction' → reverted to $5/$25/$0.50 (v0.39.0). Snapshot adopted.
